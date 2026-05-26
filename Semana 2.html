@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Medio Social y Personalidad — Semana 2</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#F5F2F9;--ink:#1A1520;--ink-light:#524E5C;
+  --accent:#6B4D8F;--accent-light:#9B7EC8;--accent-pale:#EDE6F7;
+  --line:#D5CCE5;--white:#FFFFFF;--dark:#1E1428;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);font-size:16px;line-height:1.7;}
+
+/* ── HERO ── */
+.hero{min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:6rem 2rem 4rem;max-width:1000px;margin:0 auto;opacity:0;animation:fadeUp .9s ease forwards .1s;}
+.hero-label{font-size:.72rem;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:2rem;display:flex;align-items:center;gap:.75rem;}
+.hero-label::after{content:'';display:inline-block;width:40px;height:1px;background:var(--accent);}
+.hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,7vw,6.5rem);font-weight:300;line-height:1.05;margin-bottom:2rem;}
+.hero h1 em{font-style:italic;color:var(--accent);}
+.hero-desc{font-size:1.05rem;color:var(--ink-light);font-weight:300;max-width:520px;border-left:2px solid var(--accent);padding-left:1.25rem;margin-bottom:2.5rem;}
+.hero-chips{display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:3rem;}
+.hero-chip{font-size:.75rem;padding:.3rem .9rem;border:1px solid var(--line);color:var(--ink-light);}
+.scroll-cue{display:inline-flex;align-items:center;gap:.5rem;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-light);cursor:pointer;}
+.scroll-cue .arrow{display:inline-flex;width:32px;height:32px;border:1px solid var(--line);border-radius:50%;align-items:center;justify-content:center;animation:bounce 2s ease infinite;}
+
+/* ── NAV DOTS ── */
+.nav-dots{position:fixed;right:2rem;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:.6rem;z-index:100;}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:var(--line);cursor:pointer;transition:background .3s,transform .3s;}
+.nav-dot.active{background:var(--accent);transform:scale(1.5);}
+
+/* ── SECTIONS ── */
+.section{max-width:1000px;margin:0 auto;padding:5rem 2rem;opacity:0;transform:translateY(24px);transition:opacity .7s,transform .7s;}
+.section.visible{opacity:1;transform:none;}
+.section-header{display:flex;align-items:baseline;gap:1.5rem;margin-bottom:3rem;padding-bottom:1.5rem;border-bottom:1px solid var(--line);}
+.section-number{font-family:'Cormorant Garamond',serif;font-size:1rem;font-style:italic;color:var(--accent);flex-shrink:0;}
+.section h2{font-family:'Cormorant Garamond',serif;font-size:clamp(1.6rem,4vw,2.6rem);font-weight:300;line-height:1.15;}
+.lead{font-size:1rem;color:var(--ink-light);font-weight:300;margin-bottom:2rem;max-width:680px;}
+.divider{width:60px;height:1px;background:var(--accent);margin:2rem 0;}
+
+/* ── QUOTE / EJEMPLO ── */
+.quote-block{background:var(--accent-pale);border-left:3px solid var(--accent);padding:1.25rem 1.5rem;margin:1.5rem 0;font-size:.92rem;color:var(--ink-light);font-weight:300;line-height:1.75;}
+.quote-block strong{color:var(--accent);display:block;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;margin-bottom:.35rem;}
+
+/* ── SPLIT ── */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:start;margin-bottom:2rem;}
+.dark-box{background:var(--dark);color:var(--white);padding:2rem;}
+.dark-box h4{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:400;margin-bottom:.75rem;}
+.dark-box p{font-size:.87rem;font-weight:300;opacity:.85;line-height:1.75;}
+.key-list{display:flex;flex-direction:column;gap:.75rem;}
+.key-item{display:flex;gap:.75rem;align-items:flex-start;font-size:.9rem;color:var(--ink-light);font-weight:300;}
+.key-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:.65rem;}
+
+/* ── ROLES ── */
+.hint-text{font-size:.8rem;color:var(--ink-light);margin-bottom:1.5rem;display:flex;align-items:center;gap:.5rem;}
+.hint-text::before{content:'↓';color:var(--accent);}
+.roles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;}
+.role-card{background:var(--white);border:1px solid var(--line);padding:1.5rem 1.25rem;cursor:pointer;transition:box-shadow .3s,transform .3s;}
+.role-card:hover{box-shadow:0 8px 28px rgba(107,77,143,.15);transform:translateY(-3px);}
+.role-card.open{background:var(--accent-pale);border-color:var(--accent-light);}
+.role-icon{font-size:1.8rem;margin-bottom:.5rem;}
+.role-tag{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:500;}
+.role-card h3{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;margin:.2rem 0 0;}
+.role-body{max-height:0;overflow:hidden;transition:max-height .4s ease,opacity .3s;opacity:0;font-size:.82rem;color:var(--ink-light);font-weight:300;line-height:1.65;}
+.role-card.open .role-body{max-height:180px;opacity:1;padding-top:.75rem;}
+
+/* ── PROCESOS ── */
+.proc-flow{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);}
+.proc-item{background:var(--cream);padding:1.75rem;transition:background .25s;}
+.proc-item:hover{background:var(--accent-pale);}
+.proc-num{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;color:var(--accent);line-height:1;margin-bottom:.5rem;}
+.proc-item h3{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;margin-bottom:.35rem;}
+.proc-item p{font-size:.82rem;color:var(--ink-light);font-weight:300;}
+
+/* ── MANUAL ACTIVITIES ── */
+.act-label{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;font-weight:500;margin-bottom:.75rem;display:block;}
+.act-label.a{color:#2a6e6e;}
+.act-label.b{color:#7a4e2a;}
+.manual-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.manual-card{background:var(--white);border:1px solid var(--line);padding:2rem;break-inside:avoid;}
+.manual-card h3{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;margin-bottom:.25rem;}
+.manual-card .sub{font-size:.78rem;color:var(--ink-light);margin-bottom:1.5rem;}
+.inst-step{display:flex;gap:.75rem;margin-bottom:.75rem;font-size:.87rem;color:var(--ink-light);}
+.inst-num{width:20px;height:20px;border-radius:50%;background:var(--accent-pale);border:1px solid var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:600;color:var(--accent);flex-shrink:0;margin-top:.1rem;}
+.tbl{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:1rem;}
+.tbl th{background:var(--accent-pale);color:var(--accent);padding:.5rem .6rem;text-align:left;font-weight:500;border:1px solid var(--line);font-size:.74rem;}
+.tbl td{border:1px solid var(--line);padding:.5rem .6rem;height:38px;color:var(--ink-light);}
+.reflect{margin-top:1rem;font-size:.8rem;color:var(--ink-light);}
+.reflect strong{display:block;margin-bottom:.35rem;color:var(--ink);font-size:.82rem;}
+.scenario{background:var(--cream);border:1px solid var(--line);padding:.9rem 1rem;margin-bottom:.65rem;}
+.scenario-q{font-size:.84rem;font-weight:500;margin-bottom:.5rem;color:var(--ink);}
+.scenario-opts{display:flex;flex-direction:column;gap:.25rem;}
+.s-opt{font-size:.79rem;color:var(--ink-light);display:flex;align-items:flex-start;gap:.5rem;}
+.opt-circle{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--line);flex-shrink:0;margin-top:.2rem;}
+.profile-key{background:var(--accent-pale);padding:.75rem 1rem;font-size:.76rem;color:var(--accent);margin-top:.75rem;border:1px solid var(--accent-light);line-height:1.7;}
+.profile-key strong{display:block;margin-bottom:.2rem;}
+
+/* ── TERMÓMETRO (Activity C) ── */
+.term-name{display:flex;flex-direction:column;gap:.4rem;margin-bottom:2rem;}
+.term-name label{font-size:.78rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-light);}
+.term-name input{border:1px solid var(--line);background:var(--white);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.95rem;color:var(--ink);outline:none;max-width:380px;transition:border-color .2s;}
+.term-name input:focus{border-color:var(--accent);}
+.dim-block{margin-bottom:2.5rem;}
+.dim-title{font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:500;margin-bottom:1.25rem;display:flex;align-items:center;gap:.75rem;}
+.dim-title::after{content:'';flex-grow:1;height:1px;background:var(--accent-pale);}
+.slider-q{background:var(--white);border:1px solid var(--line);padding:1.25rem 1.5rem;margin-bottom:.75rem;}
+.slider-q p{font-size:.92rem;margin-bottom:1rem;}
+.slider-row{display:flex;align-items:center;gap:.75rem;}
+.slbl{font-size:.72rem;color:var(--ink-light);min-width:80px;font-weight:300;}
+.slbl.r{text-align:right;}
+input[type=range]{-webkit-appearance:none;flex-grow:1;height:4px;background:var(--line);border-radius:2px;outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid var(--white);box-shadow:0 2px 8px rgba(107,77,143,.35);}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--white);}
+.sval{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;color:var(--accent);min-width:28px;text-align:center;}
+.btn-calc{background:var(--accent);color:var(--white);border:none;padding:.85rem 2.5rem;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:500;letter-spacing:.06em;cursor:pointer;transition:background .2s;}
+.btn-calc:hover{background:#5a3d7a;}
+.btn-calc:disabled{background:var(--line);color:var(--ink-light);cursor:not-allowed;}
+
+/* ── RESULT CARD ── */
+.result-card{display:none;background:var(--dark);color:var(--white);padding:3rem;margin-top:2rem;}
+.res-head{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;margin-bottom:.2rem;}
+.res-sub{font-size:.8rem;opacity:.5;margin-bottom:2rem;}
+.dim-bars{display:flex;flex-direction:column;gap:1.25rem;margin-bottom:2rem;}
+.dbar-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.4rem;}
+.dbar-label{font-size:.8rem;opacity:.85;}
+.dbar-score{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--accent-light);}
+.dbar-track{height:5px;background:rgba(255,255,255,.1);border-radius:3px;}
+.dbar-fill{height:100%;border-radius:3px;background:var(--accent-light);width:0%;transition:width .9s ease;}
+.res-profile{background:rgba(255,255,255,.06);padding:1.25rem;margin-bottom:1.5rem;font-size:.88rem;font-weight:300;line-height:1.8;opacity:.9;}
+.res-profile strong{color:var(--accent-light);display:block;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;margin-bottom:.4rem;}
+.btn-export{background:transparent;color:var(--accent-light);border:1px solid var(--accent-light);padding:.65rem 1.75rem;font-family:'DM Sans',sans-serif;font-size:.82rem;cursor:pointer;transition:background .2s,color .2s;display:inline-flex;align-items:center;gap:.5rem;}
+.btn-export:hover{background:var(--accent-light);color:var(--dark);}
+
+/* ── CONCLUSIÓN ── */
+.conclusion-box{background:var(--accent);color:var(--white);padding:3.5rem;position:relative;overflow:hidden;}
+.conclusion-box::before{content:'ψ';font-family:'Cormorant Garamond',serif;font-size:14rem;line-height:1;position:absolute;right:1rem;top:-2rem;opacity:.08;pointer-events:none;}
+.conclusion-box h2{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:300;margin-bottom:1.25rem;position:relative;}
+.conclusion-box p{font-size:.95rem;font-weight:300;line-height:1.8;opacity:.92;max-width:660px;position:relative;}
+
+footer{text-align:center;padding:3rem 2rem;font-size:.78rem;color:var(--ink-light);letter-spacing:.08em;border-top:1px solid var(--line);font-weight:300;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:none;}}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(5px);}}
+
+/* ── PRINT ── */
+@media print{
+  body *{visibility:hidden;}
+  #termometro,#termometro *{visibility:visible;}
+  #termometro{position:absolute;left:0;top:0;width:100%;padding:2rem;}
+  .no-print,.dim-block,.term-name,.btn-calc,.btn-export{display:none!important;}
+  .result-card{display:block!important;background:#ede6f7!important;color:#1a1520!important;border:2px solid #6B4D8F;padding:1.5rem;}
+  .res-head,.res-sub{color:#1a1520!important;}
+  .dbar-score{color:#6B4D8F!important;}
+  .dbar-track{background:#D5CCE5!important;}
+  .dbar-fill{background:#6B4D8F!important;}
+  .res-profile{background:#f0eaf9!important;color:#1a1520!important;}
+  .res-profile strong{color:#6B4D8F!important;}
+  .print-hdr{display:block!important;visibility:visible;margin-bottom:1.25rem;padding-bottom:.75rem;border-bottom:2px solid #6B4D8F;font-size:.82rem;color:#524E5C;}
+}
+.print-hdr{display:none;}
+
+/* ── MOBILE ── */
+@media(max-width:768px){
+  .section{opacity:1!important;transform:none!important;transition:none!important;padding:3rem 1.25rem;}
+  .nav-dots{display:none;}
+  .hero{padding:4rem 1.25rem 3rem;min-height:auto;}
+  .split{grid-template-columns:1fr;}
+  .manual-grid{grid-template-columns:1fr;}
+  .roles-grid{grid-template-columns:1fr 1fr;}
+  .result-card{padding:2rem 1.25rem;}
+  .conclusion-box{padding:2.5rem 1.5rem;}
+  .section-header{gap:1rem;margin-bottom:2rem;}
+}
+@media(max-width:420px){
+  .roles-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav-dots" id="navDots">
+  <div class="nav-dot active" data-target="hero"></div>
+  <div class="nav-dot" data-target="medio"></div>
+  <div class="nav-dot" data-target="roles"></div>
+  <div class="nav-dot" data-target="procesos"></div>
+  <div class="nav-dot" data-target="manuales"></div>
+  <div class="nav-dot" data-target="termometro"></div>
+</nav>
+
+<!-- HERO -->
+<section id="hero" class="hero">
+  <p class="hero-label">Psicología Social &nbsp;·&nbsp; Semana 2</p>
+  <h1>Medio Social<br>y <em>Personalidad</em><br>en Grupos Sociales</h1>
+  <p class="hero-desc">El entorno que nos rodea no solo nos acompaña: nos construye. La personalidad es el resultado dinámico de quién eres y con quién estás.</p>
+  <div class="hero-chips">
+    <span class="hero-chip">Medio social</span>
+    <span class="hero-chip">Personalidad dinámica</span>
+    <span class="hero-chip">Roles sociales</span>
+    <span class="hero-chip">Procesos grupales</span>
+  </div>
+  <div class="scroll-cue" onclick="document.getElementById('medio').scrollIntoView({behavior:'smooth'})">
+    <span class="arrow">↓</span><span>Explorar</span>
+  </div>
+</section>
+
+<!-- 01 MEDIO SOCIAL + UNIDAD PSICO-SOCIAL -->
+<section id="medio" class="section">
+  <div class="section-header">
+    <span class="section-number">01</span>
+    <h2>Medio social<br>y personalidad</h2>
+  </div>
+  <p class="lead">El medio social es el entorno que nos rodea —familia, amigos, cultura, escuela— y actúa como el gran escultor de nuestra personalidad.</p>
+
+  <div class="split">
+    <div class="key-list">
+      <div class="key-item"><span class="key-dot"></span>El entorno influye profundamente en la formación de la personalidad.</div>
+      <div class="key-item"><span class="key-dot"></span>La personalidad se construye con experiencias y relaciones sociales.</div>
+      <div class="key-item"><span class="key-dot"></span>La socialización enseña normas y roles a través de la interacción.</div>
+      <div class="key-item"><span class="key-dot"></span>La personalidad es dinámica: cambia según el contexto social.</div>
+      <div class="key-item"><span class="key-dot"></span>No es solo biológica; es también un producto del entorno.</div>
+    </div>
+    <div class="dark-box">
+      <h4>La personalidad como unidad psico-social</h4>
+      <p>La personalidad no es solo algo interno. Es el resultado de la intersección entre lo que somos biológicamente y lo que el entorno social moldea en nosotros a través de cada interacción, norma y relación.</p>
+    </div>
+  </div>
+
+  <div class="quote-block">
+    <strong>Ejemplo</strong>
+    Eres extrovertido/a, pero en una cultura que valora la reserva te adaptas en reuniones formales. Tu personalidad se ajusta al medio — no desaparece, se transforma.
+  </div>
+  <div class="quote-block">
+    <strong>Reflexiona</strong>
+    ¿Te comportas igual con tu familia que con tus compañeros de trabajo? Eres la misma persona, pero el contexto activa versiones distintas de ti. Eso es la personalidad psico-social.
+  </div>
+</section>
+
+<!-- 02 ROLES SOCIALES -->
+<section id="roles" class="section">
+  <div class="section-header">
+    <span class="section-number">02</span>
+    <h2>Roles sociales<br>y personalidad</h2>
+  </div>
+  <p class="lead">Un rol es el comportamiento que se espera de ti según el contexto. Tu personalidad no es una sola versión: se adapta y se expresa diferente en cada rol que desempeñas.</p>
+  <p class="hint-text">Toca cada tarjeta para ver cómo cambia la personalidad en ese rol</p>
+
+  <div class="roles-grid">
+    <div class="role-card" onclick="this.classList.toggle('open')">
+      <div class="role-icon">👨‍👩‍👦</div>
+      <div class="role-tag">Rol familiar</div>
+      <h3>Hijo / Hija</h3>
+      <div class="role-body">Tiendes a ser más obediente o dependiente. Las normas del hogar moldean tus primeras percepciones del mundo y de ti mismo/a.</div>
+    </div>
+    <div class="role-card" onclick="this.classList.toggle('open')">
+      <div class="role-icon">🎓</div>
+      <div class="role-tag">Rol académico</div>
+      <h3>Estudiante</h3>
+      <div class="role-body">Sigues reglas, cumples tareas, compites o cooperas. Este rol refuerza la responsabilidad y moldea hábitos que trascienden el aula.</div>
+    </div>
+    <div class="role-card" onclick="this.classList.toggle('open')">
+      <div class="role-icon">🤝</div>
+      <div class="role-tag">Rol social</div>
+      <h3>Amigo / Amiga</h3>
+      <div class="role-body">Eres más relajado/a y auténtico/a. El grupo de amigos suele ser donde la personalidad se expresa de forma más libre.</div>
+    </div>
+    <div class="role-card" onclick="this.classList.toggle('open')">
+      <div class="role-icon">💼</div>
+      <div class="role-tag">Rol laboral</div>
+      <h3>Trabajador/a</h3>
+      <div class="role-body">Adoptas formalidad y jerarquía. Tu forma de comunicarte y decidir cambia para adaptarse a las normas del entorno laboral.</div>
+    </div>
+    <div class="role-card" onclick="this.classList.toggle('open')">
+      <div class="role-icon">⭐</div>
+      <div class="role-tag">Rol grupal</div>
+      <h3>Líder</h3>
+      <div class="role-body">Organizas, decides y eres referente. Este rol exige proyectar tu personalidad hacia el grupo, lo que cambia cómo te ven y cómo te ves.</div>
+    </div>
+  </div>
+
+  <div class="quote-block" style="margin-top:2rem;">
+    <strong>Ejemplo</strong>
+    Como estudiante entregas tareas y respetas reglas. Como amigo/a eres espontáneo/a. Como líder de equipo organizas y decides. Tres roles, tres expresiones de la misma personalidad.
+  </div>
+</section>
+
+<!-- 03 PROCESOS GRUPALES -->
+<section id="procesos" class="section">
+  <div class="section-header">
+    <span class="section-number">03</span>
+    <h2>Procesos grupales</h2>
+  </div>
+  <p class="lead">Las dinámicas dentro de un grupo —normas, jerarquías, toma de decisiones— no solo afectan al colectivo: transforman la personalidad de cada uno de sus miembros.</p>
+
+  <div class="proc-flow">
+    <div class="proc-item">
+      <div class="proc-num">01</div>
+      <h3>Normas grupales</h3>
+      <p>Reglas implícitas o explícitas que regulan el comportamiento. Todos los miembros las internalizan con el tiempo.</p>
+    </div>
+    <div class="proc-item">
+      <div class="proc-num">02</div>
+      <h3>Roles dentro del grupo</h3>
+      <p>Cada miembro desempeña un papel (líder, mediador, seguidor) que determina su conducta y autopercepción.</p>
+    </div>
+    <div class="proc-item">
+      <div class="proc-num">03</div>
+      <h3>Toma de decisiones</h3>
+      <p>Los grupos deciden en conjunto, lo que puede reforzar o confrontar las creencias individuales de cada integrante.</p>
+    </div>
+    <div class="proc-item">
+      <div class="proc-num">04</div>
+      <h3>Influencia recíproca</h3>
+      <p>El comportamiento de un miembro afecta al grupo entero. La personalidad individual y la grupal se co-construyen.</p>
+    </div>
+  </div>
+
+  <div class="quote-block">
+    <strong>Ejemplo — Equipo de fútbol</strong>
+    Portero, defensor, capitán: cada rol moldea el comportamiento. Si uno genera conflictos, afecta al equipo entero. La forma en que se comunican y resuelven problemas crea una <em>personalidad colectiva</em>.
+  </div>
+</section>
+
+<!-- 04 ACTIVIDADES MANUALES -->
+<section id="manuales" class="section">
+  <div class="section-header">
+    <span class="section-number">04</span>
+    <h2>Actividades<br>para desarrollar en clase</h2>
+  </div>
+  <p class="lead">Las siguientes actividades se realizan de forma manual durante la sesión. Sigue las instrucciones de tu docente.</p>
+
+  <div class="manual-grid">
+
+    <!-- ACTIVIDAD A -->
+    <div class="manual-card">
+      <span class="act-label a">Actividad A</span>
+      <h3>¿Cuántas versiones de ti existen?</h3>
+      <p class="sub">Reflexión individual &nbsp;·&nbsp; Tabla + preguntas</p>
+      <div class="inst-step"><div class="inst-num">1</div><span>Completa la tabla identificando cómo cambias en cada contexto social.</span></div>
+      <div class="inst-step"><div class="inst-num">2</div><span>Escribe al menos 2 rasgos por celda (ej: "soy más relajado/a", "hablo menos").</span></div>
+      <div class="inst-step"><div class="inst-num">3</div><span>Responde las preguntas de reflexión al final de la tabla.</span></div>
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Contexto</th>
+            <th>Soy más...</th>
+            <th>Soy menos...</th>
+            <th>¿Por qué cambia?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Familia</td><td></td><td></td><td></td></tr>
+          <tr><td>Amigos</td><td></td><td></td><td></td></tr>
+          <tr><td>Escuela</td><td></td><td></td><td></td></tr>
+          <tr><td>Trabajo / Equipo</td><td></td><td></td><td></td></tr>
+        </tbody>
+      </table>
+      <div class="reflect">
+        <strong>Preguntas de reflexión:</strong>
+        1. ¿En qué contexto te sientes más "tú mismo/a"?<br>
+        2. ¿Qué rol desempeñas en cada grupo?<br>
+        3. ¿Cómo ha influido el medio social en tu forma de ser?
+      </div>
+    </div>
+
+    <!-- ACTIVIDAD B -->
+    <div class="manual-card">
+      <span class="act-label b">Actividad B</span>
+      <h3>Dilemas de grupo</h3>
+      <p class="sub">Reflexión grupal &nbsp;·&nbsp; 4 escenarios &nbsp;·&nbsp; Perfil de rol</p>
+      <div class="inst-step"><div class="inst-num">1</div><span>Lee cada escenario y encierra en un círculo la opción que mejor te describe.</span></div>
+      <div class="inst-step"><div class="inst-num">2</div><span>Sé honesto/a — no existen respuestas correctas o incorrectas.</span></div>
+      <div class="inst-step"><div class="inst-num">3</div><span>Al terminar, consulta el perfil de rol y comparte con tus compañeros.</span></div>
+
+      <div class="scenario">
+        <div class="scenario-q">1. Tu equipo apoya una idea que crees incorrecta. ¿Qué haces?</div>
+        <div class="scenario-opts">
+          <div class="s-opt"><div class="opt-circle"></div><span>a) Me uno al grupo aunque no esté de acuerdo</span></div>
+          <div class="s-opt"><div class="opt-circle"></div><span>b) Expreso mi opinión con respeto</span></div>
+          <div class="s-opt"><div class="opt-circle"></div><span>c) Me quedo callado/a para evitar conflicto</span></div>
+          <div class="s-opt"><div class="opt-circle"></div><span>d) Busco aliados que piensen como yo</span></div>
+        </div>
+      </div>
+      <div class="scenario">
+        <div class="scenario-q">2. No hay acuerdo en una decisión importante. ¿Tu actitud?</div>
+        <div class="scenario-opts">
+          <div class="s-opt"><div class="opt-circle"></div><span>a) Propongo un término medio</span></div>
+          <div class="s-opt"><div class="opt-circle"></div><span>b) Apoyo la propuesta más popular</span></div>
+          <div class="s-opt"><div class="opt-circle"></div><span>c) Espero que el líder decida</span></div>
+          <div class="s-opt"><div class="opt-circle"></div><span>d) Insisto en mi postura hasta convencer</span></div>
+        </div>
+      </div>
+      <div class="scenario">
+        <div class="scenario-q">3. Un miembro genera conflictos constantemente. ¿Cómo reaccionas?</div>
+        <div class="scenario-opts">
+          <div class="s-opt"><div class="opt-circle"></div><span>a) Lo enfrento directamente</span></div>
+          <div class="s-opt"><div class="opt-circle"></div><span>b) Intento mediar entre las partes</span></div>
+          <div class="s-opt"><div class="opt-circle"></div><span>c) Ignoro esperando que se resuelva solo</span></div>
+          <div class="s-opt"><div class="opt-circle"></div><span>d) Informo a quien tenga autoridad</span></div>
+        </div>
+      </div>
+      <div class="scenario">
+        <div class="scenario-q">4. El equipo logra un gran resultado. ¿Cómo ves tu aportación?</div>
+        <div class="scenario-opts">
+          <div class="s-opt"><div class="opt-circle"></div><span>a) Fui clave en el resultado</span></div>
+          <div class="s-opt"><div class="opt-circle"></div><span>b) Contribuí igual que todos</span></div>
+          <div class="s-opt"><div class="opt-circle"></div><span>c) Apoyé desde un rol secundario</span></div>
+          <div class="s-opt"><div class="opt-circle"></div><span>d) No creo haber aportado mucho</span></div>
+        </div>
+      </div>
+
+      <div class="profile-key">
+        <strong>Perfil de rol según tus respuestas:</strong>
+        Mayoría A → Agente de cambio<br>
+        Mayoría B → Mediador / Líder<br>
+        Mayoría C → Observador / Seguidor<br>
+        Mayoría D → Influyente estratégico
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- 05 TERMÓMETRO SOCIAL (Activity C) -->
+<section id="termometro" class="section">
+  <div class="section-header">
+    <span class="section-number">05</span>
+    <h2>Mi termómetro<br>social</h2>
+  </div>
+
+  <div class="print-hdr" id="printHdr">
+    <strong>Psicología Social — Semana 2 &nbsp;·&nbsp; Mi Termómetro Social</strong><br>
+    Nombre: <span id="pName"></span> &nbsp;·&nbsp; Fecha: <span id="pDate"></span>
+  </div>
+
+  <p class="lead">Mueve cada control según tu experiencia real. No hay respuestas correctas — esto es un ejercicio de autoconocimiento. Al terminar obtendrás tu perfil de personalidad social.</p>
+
+  <div class="term-name no-print">
+    <label for="tName">Tu nombre</label>
+    <input type="text" id="tName" placeholder="Escribe tu nombre completo">
+  </div>
+
+  <!-- DIM 1 -->
+  <div class="dim-block">
+    <div class="dim-title">Adaptabilidad</div>
+    <div class="slider-q">
+      <p>Ante las normas de un grupo nuevo, yo...</p>
+      <div class="slider-row">
+        <span class="slbl">Me resisto</span>
+        <input type="range" min="1" max="10" value="5" id="s1" oninput="sv(this,'v1')">
+        <span class="slbl r">Me adapto fácil</span>
+        <span class="sval" id="v1">5</span>
+      </div>
+    </div>
+    <div class="slider-q">
+      <p>Cuando distintos grupos esperan cosas diferentes de mí...</p>
+      <div class="slider-row">
+        <span class="slbl">Me bloqueo</span>
+        <input type="range" min="1" max="10" value="5" id="s2" oninput="sv(this,'v2')">
+        <span class="slbl r">Lo manejo bien</span>
+        <span class="sval" id="v2">5</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIM 2 -->
+  <div class="dim-block">
+    <div class="dim-title">Influencia grupal</div>
+    <div class="slider-q">
+      <p>En un equipo, propongo ideas y tomo iniciativa...</p>
+      <div class="slider-row">
+        <span class="slbl">Casi nunca</span>
+        <input type="range" min="1" max="10" value="5" id="s3" oninput="sv(this,'v3')">
+        <span class="slbl r">Siempre</span>
+        <span class="sval" id="v3">5</span>
+      </div>
+    </div>
+    <div class="slider-q">
+      <p>Mi opinión suele cambiar las decisiones del grupo...</p>
+      <div class="slider-row">
+        <span class="slbl">Poco</span>
+        <input type="range" min="1" max="10" value="5" id="s4" oninput="sv(this,'v4')">
+        <span class="slbl r">Mucho</span>
+        <span class="sval" id="v4">5</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIM 3 -->
+  <div class="dim-block">
+    <div class="dim-title">Construcción del rol</div>
+    <div class="slider-q">
+      <p>Identifico claramente el papel que juego en cada grupo...</p>
+      <div class="slider-row">
+        <span class="slbl">No tengo claro</span>
+        <input type="range" min="1" max="10" value="5" id="s5" oninput="sv(this,'v5')">
+        <span class="slbl r">Muy claro</span>
+        <span class="sval" id="v5">5</span>
+      </div>
+    </div>
+    <div class="slider-q">
+      <p>Cambio mi comportamiento según el contexto en que estoy...</p>
+      <div class="slider-row">
+        <span class="slbl">Soy igual siempre</span>
+        <input type="range" min="1" max="10" value="5" id="s6" oninput="sv(this,'v6')">
+        <span class="slbl r">Me adapto mucho</span>
+        <span class="sval" id="v6">5</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIM 4 -->
+  <div class="dim-block">
+    <div class="dim-title">Impacto del medio</div>
+    <div class="slider-q">
+      <p>Las personas que me rodean han moldeado mi forma de ser...</p>
+      <div class="slider-row">
+        <span class="slbl">Muy poco</span>
+        <input type="range" min="1" max="10" value="5" id="s7" oninput="sv(this,'v7')">
+        <span class="slbl r">Enormemente</span>
+        <span class="sval" id="v7">5</span>
+      </div>
+    </div>
+    <div class="slider-q">
+      <p>El entorno social afecta mi estado de ánimo y mis decisiones...</p>
+      <div class="slider-row">
+        <span class="slbl">Casi nada</span>
+        <input type="range" min="1" max="10" value="5" id="s8" oninput="sv(this,'v8')">
+        <span class="slbl r">Constantemente</span>
+        <span class="sval" id="v8">5</span>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-calc no-print" id="btnCalc" onclick="calcProfile()">Ver mi perfil social</button>
+
+  <!-- RESULT -->
+  <div class="result-card" id="resultCard">
+    <div class="res-head" id="rTitle">Perfil social</div>
+    <div class="res-sub" id="rSub"></div>
+    <div class="dim-bars">
+      <div>
+        <div class="dbar-top"><span class="dbar-label">Adaptabilidad</span><span class="dbar-score" id="sc1">—</span></div>
+        <div class="dbar-track"><div class="dbar-fill" id="bf1"></div></div>
+      </div>
+      <div>
+        <div class="dbar-top"><span class="dbar-label">Influencia grupal</span><span class="dbar-score" id="sc2">—</span></div>
+        <div class="dbar-track"><div class="dbar-fill" id="bf2"></div></div>
+      </div>
+      <div>
+        <div class="dbar-top"><span class="dbar-label">Construcción del rol</span><span class="dbar-score" id="sc3">—</span></div>
+        <div class="dbar-track"><div class="dbar-fill" id="bf3"></div></div>
+      </div>
+      <div>
+        <div class="dbar-top"><span class="dbar-label">Impacto del medio</span><span class="dbar-score" id="sc4">—</span></div>
+        <div class="dbar-track"><div class="dbar-fill" id="bf4"></div></div>
+      </div>
+    </div>
+    <div class="res-profile">
+      <strong>Tu perfil dominante</strong>
+      <span id="rDesc"></span>
+    </div>
+    <button class="btn-export" onclick="exportR()">⬇ Exportar perfil como PDF</button>
+  </div>
+</section>
+
+<!-- CONCLUSIÓN -->
+<section id="final" class="section">
+  <div class="section-header">
+    <span class="section-number">06</span>
+    <h2>Conclusión</h2>
+  </div>
+  <div class="conclusion-box">
+    <h2>Somos lo que construimos con los demás</h2>
+    <p>El medio social no es un escenario pasivo: es un agente activo que moldea quiénes somos. La personalidad se expresa distinto en cada rol, se transforma dentro de los grupos y refleja el entorno cultural en que vivimos. Comprender esta dinámica es el primer paso para entendernos a nosotros mismos y a quienes nos rodean.</p>
+  </div>
+</section>
+
+<footer>Medio Social y Personalidad &nbsp;·&nbsp; Semana 2 &nbsp;·&nbsp; Psicología Social &nbsp;·&nbsp; César Delgado</footer>
+
+<script>
+/* SCROLL ANIMATIONS */
+const mq=window.matchMedia('(min-width:769px)');
+document.querySelectorAll('.section').forEach(s=>{
+  if(mq.matches){
+    new IntersectionObserver(([e])=>{if(e.isIntersecting)s.classList.add('visible');},{threshold:.08}).observe(s);
+  }else{s.classList.add('visible');}
+});
+
+/* NAV DOTS */
+const dots=document.querySelectorAll('.nav-dot');
+const targets=[...dots].map(d=>document.getElementById(d.dataset.target));
+if(mq.matches){
+  new IntersectionObserver(entries=>{
+    entries.forEach(e=>{if(e.isIntersecting){dots.forEach(d=>d.classList.remove('active'));const i=targets.indexOf(e.target);if(i>-1)dots[i].classList.add('active');}});
+  },{threshold:.3}).observe && targets.forEach(t=>{
+    if(!t)return;
+    new IntersectionObserver(([e])=>{
+      if(e.isIntersecting){dots.forEach(d=>d.classList.remove('active'));const i=targets.indexOf(t);if(i>-1)dots[i].classList.add('active');}
+    },{threshold:.3}).observe(t);
+  });
+  dots.forEach((d,i)=>d.addEventListener('click',()=>targets[i]?.scrollIntoView({behavior:'smooth'})));
+}
+
+/* SLIDER VALUE UPDATE */
+function sv(el,vid){document.getElementById(vid).textContent=el.value;}
+
+/* PROFILES */
+const PROFILES=[
+  {title:'Camaleón Social',     desc:'Tu mayor fortaleza es la <strong>adaptabilidad</strong>. Te ajustas con naturalidad a distintos entornos y expectativas, lo que te permite moverte cómodamente entre grupos muy diferentes sin perder tu esencia.'},
+  {title:'Conector/a Natural',  desc:'Destacas por tu <strong>influencia grupal</strong>. Tu voz tiene peso en las decisiones colectivas y tiendes a tomar iniciativa de forma espontánea, siendo un punto de referencia dentro de los grupos.'},
+  {title:'Arquitecto/a de Roles',desc:'Tienes una <strong>conciencia clara de los roles</strong> que desempeñas. Sabes quién eres en cada contexto y ajustas tu comportamiento de forma intencional y reflexiva.'},
+  {title:'Receptor/a del Entorno',desc:'Eres muy sensible al <strong>impacto del medio social</strong>. Las personas y situaciones que te rodean influyen profundamente en tu estado de ánimo, decisiones y forma de relacionarte.'}
+];
+
+/* CALC PROFILE */
+function calcProfile(){
+  const v=i=>+document.getElementById('s'+i).value;
+  const dims=[(v(1)+v(2))/2,(v(3)+v(4))/2,(v(5)+v(6))/2,(v(7)+v(8))/2];
+  const avg=(dims.reduce((a,b)=>a+b,0)/4).toFixed(1);
+  const maxI=dims.indexOf(Math.max(...dims));
+  const name=document.getElementById('tName').value.trim()||'Estudiante';
+
+  dims.forEach((d,i)=>{
+    document.getElementById('sc'+(i+1)).textContent=d.toFixed(1)+'/10';
+    setTimeout(()=>{document.getElementById('bf'+(i+1)).style.width=(d*10)+'%';},300+i*100);
+  });
+
+  document.getElementById('rTitle').textContent=PROFILES[maxI].title;
+  document.getElementById('rSub').textContent=name+' · Promedio general: '+avg+'/10';
+  document.getElementById('rDesc').innerHTML=PROFILES[maxI].desc;
+
+  const rc=document.getElementById('resultCard');
+  rc.style.display='block';
+  rc.scrollIntoView({behavior:'smooth',block:'center'});
+  const btn=document.getElementById('btnCalc');
+  btn.disabled=true;btn.textContent='Perfil generado ✓';
+  window._pName=name;
+}
+
+/* EXPORT */
+function exportR(){
+  if(document.getElementById('resultCard').style.display==='none'){alert('Primero genera tu perfil.');return;}
+  document.getElementById('pName').textContent=window._pName||'Estudiante';
+  document.getElementById('pDate').textContent=new Date().toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'});
+  window.print();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Actitudes y Creencias — Semana 3</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F5F2F9;--k:#1A1520;--kl:#524E5C;--a:#6B4D8F;--al:#9B7EC8;--ap:#EDE6F7;--ln:#D5CCE5;--w:#fff;--dk:#1E1428;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--k);font-size:16px;line-height:1.7;}
+
+.hero{min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:6rem 2rem 4rem;max-width:960px;margin:0 auto;opacity:0;animation:fu .9s ease forwards .1s;}
+.hero-lbl{font-size:.72rem;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--a);margin-bottom:2rem;display:flex;align-items:center;gap:.75rem;}
+.hero-lbl::after{content:'';width:40px;height:1px;background:var(--a);}
+.hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,7vw,6rem);font-weight:300;line-height:1.05;margin-bottom:1.75rem;}
+.hero h1 em{font-style:italic;color:var(--a);}
+.hero-desc{font-size:1rem;color:var(--kl);font-weight:300;max-width:500px;border-left:2px solid var(--a);padding-left:1.25rem;margin-bottom:2.5rem;}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:3rem;}
+.chip{font-size:.75rem;padding:.3rem .9rem;border:1px solid var(--ln);color:var(--kl);}
+.scroll-cue{display:inline-flex;align-items:center;gap:.5rem;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--kl);cursor:pointer;}
+.arrow{display:inline-flex;width:32px;height:32px;border:1px solid var(--ln);border-radius:50%;align-items:center;justify-content:center;animation:bk 2s ease infinite;}
+
+.nav-dots{position:fixed;right:2rem;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:.6rem;z-index:100;}
+.nd{width:6px;height:6px;border-radius:50%;background:var(--ln);cursor:pointer;transition:background .3s,transform .3s;}
+.nd.active{background:var(--a);transform:scale(1.5);}
+
+.section{max-width:960px;margin:0 auto;padding:5rem 2rem;opacity:0;transform:translateY(24px);transition:opacity .7s,transform .7s;}
+.section.visible{opacity:1;transform:none;}
+.sh{display:flex;align-items:baseline;gap:1.5rem;margin-bottom:3rem;padding-bottom:1.5rem;border-bottom:1px solid var(--ln);}
+.sn{font-family:'Cormorant Garamond',serif;font-size:1rem;font-style:italic;color:var(--a);flex-shrink:0;}
+.section h2{font-family:'Cormorant Garamond',serif;font-size:clamp(1.6rem,4vw,2.6rem);font-weight:300;line-height:1.15;}
+.lead{font-size:1rem;color:var(--kl);font-weight:300;margin-bottom:2rem;max-width:680px;}
+.divider{width:60px;height:1px;background:var(--a);margin:2rem 0;}
+.qb{background:var(--ap);border-left:3px solid var(--a);padding:1.25rem 1.5rem;margin:1.5rem 0;font-size:.9rem;color:var(--kl);font-weight:300;line-height:1.75;}
+.qb strong{color:var(--a);display:block;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;margin-bottom:.3rem;}
+
+/* 3 componentes */
+.comp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--ln);border:1px solid var(--ln);margin-bottom:2rem;}
+.comp-item{background:var(--w);padding:1.75rem 1.5rem;transition:background .25s;}
+.comp-item:hover{background:var(--ap);}
+.comp-n{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;color:var(--a);line-height:1;margin-bottom:.4rem;}
+.comp-item h3{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;margin-bottom:.35rem;}
+.comp-item p{font-size:.82rem;color:var(--kl);font-weight:300;}
+
+/* Split */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;}
+.dk-box{background:var(--dk);color:var(--w);padding:2rem;}
+.dk-box h4{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:400;margin-bottom:.75rem;}
+.dk-box p{font-size:.87rem;font-weight:300;opacity:.85;line-height:1.75;}
+.dk-box ul{list-style:none;display:flex;flex-direction:column;gap:.5rem;margin-top:.75rem;}
+.dk-box li{font-size:.84rem;font-weight:300;opacity:.85;padding-left:1rem;position:relative;}
+.dk-box li::before{content:'—';position:absolute;left:0;color:var(--al);}
+
+/* ELM cards */
+.elm-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:2rem;}
+.elm-card{padding:2rem;}
+.elm-card.central{background:var(--dk);color:var(--w);}
+.elm-card.peri{background:var(--a);color:var(--w);}
+.elm-card h3{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:300;margin-bottom:.75rem;}
+.elm-card p{font-size:.87rem;font-weight:300;opacity:.88;line-height:1.75;}
+.elm-card .eg{font-size:.78rem;opacity:.65;margin-top:.75rem;font-style:italic;border-top:1px solid rgba(255,255,255,.2);padding-top:.65rem;}
+
+/* Persistencia pills */
+.pers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1px;background:var(--ln);border:1px solid var(--ln);}
+.pers-item{background:var(--bg);padding:1.25rem 1.5rem;display:flex;gap:.75rem;align-items:flex-start;font-size:.87rem;color:var(--kl);transition:background .25s;}
+.pers-item:hover{background:var(--ap);}
+.pdot{width:6px;height:6px;border-radius:50%;background:var(--a);flex-shrink:0;margin-top:.6rem;}
+
+/* MANUAL */
+.manual-card{background:var(--w);border:1px solid var(--ln);padding:2rem;}
+.act-tag{font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;font-weight:500;color:#2a6e6e;display:block;margin-bottom:.6rem;}
+.manual-card h3{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;margin-bottom:.25rem;}
+.manual-card .sub{font-size:.78rem;color:var(--kl);margin-bottom:1.5rem;}
+.istep{display:flex;gap:.7rem;margin-bottom:.7rem;font-size:.86rem;color:var(--kl);}
+.in{width:20px;height:20px;border-radius:50%;background:var(--ap);border:1px solid var(--al);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:600;color:var(--a);flex-shrink:0;margin-top:.1rem;}
+.att-tbl{width:100%;border-collapse:collapse;font-size:.79rem;margin-top:1rem;}
+.att-tbl th{background:var(--ap);color:var(--a);padding:.5rem .7rem;text-align:left;border:1px solid var(--ln);font-weight:500;font-size:.74rem;}
+.att-tbl td{border:1px solid var(--ln);padding:.5rem .7rem;height:40px;}
+.reflect{margin-top:1rem;font-size:.8rem;color:var(--kl);}
+.reflect strong{display:block;margin-bottom:.3rem;color:var(--k);}
+
+/* ── QUIZ ── */
+.quiz-intro{font-size:.85rem;color:var(--kl);margin-bottom:1.5rem;display:flex;align-items:center;gap:.5rem;}
+.quiz-intro::before{content:'⚡';font-size:1rem;}
+.sc-card{background:var(--w);border:1px solid var(--ln);padding:1.5rem;margin-bottom:1rem;transition:border-color .3s;}
+.sc-card.correct{border-left:3px solid #3a8f6b;}
+.sc-card.wrong{border-left:3px solid #8f3a3a;}
+.sc-num{font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--a);font-weight:500;margin-bottom:.5rem;}
+.sc-txt{font-size:.9rem;margin-bottom:1.1rem;line-height:1.65;}
+.q-row{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.6rem;}
+.q-row label{font-size:.75rem;font-weight:500;color:var(--kl);width:100%;margin-bottom:.2rem;}
+.opt{display:flex;align-items:center;gap:.5rem;cursor:pointer;}
+.opt input{accent-color:var(--a);width:15px;height:15px;flex-shrink:0;}
+.opt span{font-size:.83rem;color:var(--kl);}
+.sc-fb{display:none;margin-top:.75rem;padding:.75rem 1rem;font-size:.82rem;line-height:1.65;}
+.sc-fb.ok{background:#e6f5ee;color:#2a5c40;}
+.sc-fb.no{background:#f5e6e6;color:#5c2a2a;}
+.sc-fb strong{display:block;margin-bottom:.2rem;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;}
+
+.btn-check{background:var(--a);color:var(--w);border:none;padding:.8rem 2rem;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;cursor:pointer;margin-top:.5rem;transition:background .2s;}
+.btn-check:hover{background:#5a3d7a;}
+.btn-check:disabled{background:var(--ln);color:var(--kl);cursor:not-allowed;}
+.quiz-score{display:none;background:var(--dk);color:var(--w);padding:1.5rem 2rem;margin-top:1.5rem;display:none;}
+.qs-num{font-family:'Cormorant Garamond',serif;font-size:3rem;font-weight:300;color:var(--al);line-height:1;}
+.qs-msg{font-size:.88rem;opacity:.8;margin-top:.25rem;}
+
+/* ── BUILDER ── */
+.bld-intro{font-size:.85rem;color:var(--kl);margin-bottom:1.5rem;}
+.bld-step{margin-bottom:1.75rem;}
+.bld-title{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--a);font-weight:500;margin-bottom:.75rem;display:flex;align-items:center;gap:.75rem;}
+.bld-title::after{content:'';flex-grow:1;height:1px;background:var(--ap);}
+.bld-opts{display:flex;flex-wrap:wrap;gap:.6rem;}
+.bopt{background:var(--w);border:1px solid var(--ln);padding:.6rem 1.1rem;font-size:.83rem;color:var(--kl);cursor:pointer;transition:background .2s,border-color .2s,color .2s;}
+.bopt:hover{background:var(--ap);}
+.bopt.sel{background:var(--a);color:var(--w);border-color:var(--a);}
+.btn-gen{background:var(--a);color:var(--w);border:none;padding:.8rem 2rem;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;cursor:pointer;margin-top:.25rem;transition:background .2s;}
+.btn-gen:hover{background:#5a3d7a;}
+.btn-gen:disabled{background:var(--ln);color:var(--kl);cursor:not-allowed;}
+.bld-result{display:none;background:var(--dk);color:var(--w);padding:2rem;margin-top:1.5rem;}
+.bld-ruta{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:300;margin-bottom:.25rem;}
+.bld-sub{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--al);margin-bottom:1rem;}
+.bld-desc{font-size:.88rem;font-weight:300;opacity:.88;line-height:1.8;}
+.bld-tip{font-size:.78rem;opacity:.6;margin-top:.75rem;font-style:italic;}
+
+/* CONCLUSIÓN */
+.conc{background:var(--a);color:var(--w);padding:3.5rem;position:relative;overflow:hidden;}
+.conc::before{content:'ψ';font-family:'Cormorant Garamond',serif;font-size:14rem;line-height:1;position:absolute;right:1rem;top:-2rem;opacity:.08;pointer-events:none;}
+.conc h2{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:300;margin-bottom:1.25rem;position:relative;}
+.conc p{font-size:.95rem;font-weight:300;line-height:1.8;opacity:.92;max-width:660px;position:relative;}
+footer{text-align:center;padding:3rem 2rem;font-size:.78rem;color:var(--kl);letter-spacing:.08em;border-top:1px solid var(--ln);}
+
+@keyframes fu{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:none;}}
+@keyframes bk{0%,100%{transform:translateY(0);}50%{transform:translateY(5px);}}
+
+@media(max-width:768px){
+  .section{opacity:1!important;transform:none!important;transition:none!important;padding:3rem 1.25rem;}
+  .nav-dots{display:none;}
+  .hero{padding:4rem 1.25rem 3rem;min-height:auto;}
+  .comp-grid{grid-template-columns:1fr;}
+  .split,.elm-grid{grid-template-columns:1fr;}
+  .conc{padding:2.5rem 1.5rem;}
+}
+@media(max-width:440px){.bld-opts{flex-direction:column;}.bopt{text-align:center;}}
+</style>
+</head>
+<body>
+
+<nav class="nav-dots">
+  <div class="nd active" data-t="hero"></div>
+  <div class="nd" data-t="actitudes"></div>
+  <div class="nd" data-t="persuasion"></div>
+  <div class="nd" data-t="manual"></div>
+  <div class="nd" data-t="quiz"></div>
+  <div class="nd" data-t="builder"></div>
+</nav>
+
+<!-- HERO -->
+<section id="hero" class="hero">
+  <p class="hero-lbl">Psicología Social &nbsp;·&nbsp; Semana 3</p>
+  <h1>Actitudes<br>y <em>Creencias</em></h1>
+  <p class="hero-desc">Cómo se forman nuestras convicciones, por qué cambian y de qué manera otros logran —o intentan— influir en ellas.</p>
+  <div class="chips">
+    <span class="chip">Formación de actitudes</span>
+    <span class="chip">Cambio de creencias</span>
+    <span class="chip">Persuasión · ELM</span>
+    <span class="chip">Persistencia</span>
+  </div>
+  <div class="scroll-cue" onclick="document.getElementById('actitudes').scrollIntoView({behavior:'smooth'})">
+    <span class="arrow">↓</span><span>Explorar</span>
+  </div>
+</section>
+
+<!-- 01 ACTITUDES -->
+<section id="actitudes" class="section">
+  <div class="sh"><span class="sn">01</span><h2>Formación de actitudes<br>y cambio de creencias</h2></div>
+  <p class="lead">Las actitudes integran lo que pensamos, lo que sentimos y cómo tendemos a actuar. Las creencias son su base cognitiva y pueden transformarse.</p>
+
+  <div class="comp-grid">
+    <div class="comp-item">
+      <div class="comp-n">C</div>
+      <h3>Cognitivo</h3>
+      <p>Ideas y creencias que la persona tiene sobre un objeto, situación o persona.</p>
+    </div>
+    <div class="comp-item">
+      <div class="comp-n">A</div>
+      <h3>Afectivo</h3>
+      <p>Sentimientos o emociones vinculados a la actitud. Es el componente más resistente al cambio.</p>
+    </div>
+    <div class="comp-item">
+      <div class="comp-n">C</div>
+      <h3>Conductual</h3>
+      <p>Predisposición a actuar de cierta manera. Puede ser coherente o contradictoria con los otros dos.</p>
+    </div>
+  </div>
+
+  <div class="qb">
+    <strong>Ejemplo integrado</strong>
+    Alguien con experiencias positivas en cursos virtuales (cognitivo) siente entusiasmo al inscribirse en uno nuevo (afectivo) y lo recomienda a sus amigos (conductual).
+  </div>
+
+  <div class="split">
+    <div class="dk-box">
+      <h4>¿Cómo se forman?</h4>
+      <ul>
+        <li><strong>Condicionamiento clásico:</strong> respuestas emocionales por asociación repetida.</li>
+        <li><strong>Condicionamiento operante:</strong> actitudes reforzadas por premios o castigos.</li>
+        <li><strong>Aprendizaje social:</strong> observar a otros y el efecto de sus actitudes.</li>
+      </ul>
+    </div>
+    <div class="dk-box">
+      <h4>Cambio de esquemas</h4>
+      <p><strong style="color:var(--al);">Asimilación:</strong> nueva info que encaja en los esquemas actuales sin modificarlos.</p>
+      <p style="margin-top:.75rem;"><strong style="color:var(--al);">Acomodación:</strong> los esquemas se reestructuran ante información que los contradice.</p>
+      <p style="margin-top:.75rem;font-size:.82rem;opacity:.75;">Ej: creer que el teletrabajo baja la productividad → comprobar lo contrario → acomodación.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 02 PERSUASIÓN -->
+<section id="persuasion" class="section">
+  <div class="sh"><span class="sn">02</span><h2>Persuasión y persistencia<br>de las actitudes</h2></div>
+  <p class="lead">La persuasión influye en actitudes mediante la comunicación. La Teoría de la Elaboración de la Probabilidad (ELM) distingue dos rutas de procesamiento.</p>
+
+  <div class="elm-grid">
+    <div class="elm-card central">
+      <h3>Ruta central</h3>
+      <p>El receptor analiza cuidadosamente el contenido, evalúa argumentos y verifica su validez. El cambio resultante es <strong>más duradero y resistente</strong>.</p>
+      <div class="eg">Ej: cambiar la dieta tras leer estudios científicos revisados por pares.</div>
+    </div>
+    <div class="elm-card peri">
+      <h3>Ruta periférica</h3>
+      <p>El cambio se basa en señales externas: apariencia del emisor, emoción generada, popularidad. Se procesa de manera superficial y es <strong>más efímero</strong>.</p>
+      <div class="eg">Ej: comprar un producto porque lo recomienda una celebridad sin revisar evidencia.</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:400;margin-bottom:1rem;">Factores de persistencia</h3>
+  <div class="pers-grid">
+    <div class="pers-item"><span class="pdot"></span>Actitudes ligadas a la identidad personal son más difíciles de cambiar.</div>
+    <div class="pers-item"><span class="pdot"></span>La exposición repetida a información refuerza y consolida la actitud.</div>
+    <div class="pers-item"><span class="pdot"></span>La disonancia cognitiva puede desestabilizar actitudes arraigadas.</div>
+    <div class="pers-item"><span class="pdot"></span>La presión social puede acelerar —o frenar— el cambio de actitud.</div>
+  </div>
+</section>
+
+<!-- 03 MANUAL -->
+<section id="manual" class="section">
+  <div class="sh"><span class="sn">03</span><h2>Actividad para<br>desarrollar en clase</h2></div>
+  <div class="manual-card">
+    <span class="act-tag">Actividad A · Manual · Individual o parejas</span>
+    <h3>Disección de una actitud</h3>
+    <p class="sub">Elige una actitud concreta y desármala en sus componentes para entender su origen y resistencia.</p>
+    <div class="istep"><div class="in">1</div><span>Elige una actitud real que tengas (ej: "el trabajo en equipo es más eficiente que trabajar solo").</span></div>
+    <div class="istep"><div class="in">2</div><span>Completa la tabla identificando cada componente y cómo se formó esa actitud.</span></div>
+    <div class="istep"><div class="in">3</div><span>Reflexiona: ¿qué necesitaría pasar para que esa actitud cambiara?</span></div>
+    <table class="att-tbl">
+      <thead>
+        <tr>
+          <th>Componente</th>
+          <th>¿Qué piensas / sientes / harías?</th>
+          <th>¿Cómo se formó? (condicionamiento / aprendizaje social / experiencia)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Cognitivo</strong></td><td></td><td></td></tr>
+        <tr><td><strong>Afectivo</strong></td><td></td><td></td></tr>
+        <tr><td><strong>Conductual</strong></td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="reflect">
+      <strong>Preguntas de cierre:</strong>
+      1. ¿Tu actitud fue formada más por experiencia o por influencia social?<br>
+      2. ¿Es más fácil cambiar el componente cognitivo o el afectivo? ¿Por qué?<br>
+      3. ¿Qué tipo de persuasión (central o periférica) sería más efectiva para modificarla?
+    </div>
+  </div>
+</section>
+
+<!-- 04 QUIZ -->
+<section id="quiz" class="section">
+  <div class="sh"><span class="sn">04</span><h2>¿Te están<br>persuadiendo?</h2></div>
+  <p class="lead">Cuatro situaciones reales. Para cada una: identifica la ruta de persuasión y el elemento clave que la activa. No todas son obvias.</p>
+  <p class="quiz-intro">Responde las dos preguntas por escenario y verifica al final.</p>
+
+  <!-- SCENARIO 1 -->
+  <div class="sc-card" id="sc1">
+    <div class="sc-num">Escenario 01</div>
+    <div class="sc-txt">Un médico reconocido aparece en TV recomendando un suplemento vitamínico. Habla con seguridad y usa términos científicos, pero <em>no presenta ningún estudio</em>. Muchos espectadores lo compran esa semana.</div>
+    <div class="q-row">
+      <label>¿Qué ruta de persuasión se activó?</label>
+      <div class="opt"><input type="radio" name="r1" value="central"><span>Ruta central</span></div>
+      <div class="opt"><input type="radio" name="r1" value="peri"><span>Ruta periférica</span></div>
+    </div>
+    <div class="q-row">
+      <label>¿Cuál fue el elemento clave?</label>
+      <div class="opt"><input type="radio" name="e1" value="fuente"><span>Fuente (credibilidad percibida)</span></div>
+      <div class="opt"><input type="radio" name="e1" value="contenido"><span>Contenido (argumentos sólidos)</span></div>
+      <div class="opt"><input type="radio" name="e1" value="receptor"><span>Receptor (alta motivación)</span></div>
+    </div>
+    <div class="sc-fb" id="fb1"></div>
+  </div>
+
+  <!-- SCENARIO 2 -->
+  <div class="sc-card" id="sc2">
+    <div class="sc-num">Escenario 02</div>
+    <div class="sc-txt">Un fumador habitual lee un informe médico que confirma que su hábito reduce 10 años de vida. Aunque le molesta, lo analiza con atención y comienza a reducir el consumo gradualmente.</div>
+    <div class="q-row">
+      <label>¿Qué ruta de persuasión se activó?</label>
+      <div class="opt"><input type="radio" name="r2" value="central"><span>Ruta central</span></div>
+      <div class="opt"><input type="radio" name="r2" value="peri"><span>Ruta periférica</span></div>
+    </div>
+    <div class="q-row">
+      <label>¿Cuál fue el elemento clave?</label>
+      <div class="opt"><input type="radio" name="e2" value="fuente"><span>Fuente (autor del informe)</span></div>
+      <div class="opt"><input type="radio" name="e2" value="contenido"><span>Contenido (evidencia clara)</span></div>
+      <div class="opt"><input type="radio" name="e2" value="receptor"><span>Receptor (involucramiento personal)</span></div>
+    </div>
+    <div class="sc-fb" id="fb2"></div>
+  </div>
+
+  <!-- SCENARIO 3 -->
+  <div class="sc-card" id="sc3">
+    <div class="sc-num">Escenario 03</div>
+    <div class="sc-txt">Una marca de perfume lanza un anuncio con imágenes de lujo y una melodía nostálgica. <em>No menciona ingredientes, precio ni calidad.</em> Las ventas se disparan entre personas de 30-45 años.</div>
+    <div class="q-row">
+      <label>¿Qué ruta de persuasión se activó?</label>
+      <div class="opt"><input type="radio" name="r3" value="central"><span>Ruta central</span></div>
+      <div class="opt"><input type="radio" name="r3" value="peri"><span>Ruta periférica</span></div>
+    </div>
+    <div class="q-row">
+      <label>¿Cuál fue el elemento clave? (la más precisa)</label>
+      <div class="opt"><input type="radio" name="e3" value="fuente"><span>Fuente (la marca en sí)</span></div>
+      <div class="opt"><input type="radio" name="e3" value="contenido"><span>Contenido (apelación emocional)</span></div>
+      <div class="opt"><input type="radio" name="e3" value="receptor"><span>Receptor (nostalgia del grupo)</span></div>
+    </div>
+    <div class="sc-fb" id="fb3"></div>
+  </div>
+
+  <!-- SCENARIO 4 -->
+  <div class="sc-card" id="sc4">
+    <div class="sc-num">Escenario 04</div>
+    <div class="sc-txt">Un activista sin título universitario presenta estadísticas verificables sobre deforestación. Un grupo de estudiantes investiga más por su cuenta y cambia sus hábitos de consumo.</div>
+    <div class="q-row">
+      <label>¿Qué ruta se activó en los estudiantes?</label>
+      <div class="opt"><input type="radio" name="r4" value="central"><span>Ruta central</span></div>
+      <div class="opt"><input type="radio" name="r4" value="peri"><span>Ruta periférica</span></div>
+    </div>
+    <div class="q-row">
+      <label>¿Por qué fue posible a pesar de la fuente?</label>
+      <div class="opt"><input type="radio" name="e4" value="fuente"><span>La fuente sí era confiable</span></div>
+      <div class="opt"><input type="radio" name="e4" value="contenido"><span>El contenido era verificable</span></div>
+      <div class="opt"><input type="radio" name="e4" value="receptor"><span>El receptor tenía alta motivación</span></div>
+    </div>
+    <div class="sc-fb" id="fb4"></div>
+  </div>
+
+  <button class="btn-check" id="btnQ" onclick="checkQuiz()">Verificar respuestas</button>
+  <div class="quiz-score" id="qscore">
+    <div class="qs-num" id="qnum">0/8</div>
+    <div class="qs-msg" id="qmsg"></div>
+  </div>
+</section>
+
+<!-- 05 BUILDER -->
+<section id="builder" class="section">
+  <div class="sh"><span class="sn">05</span><h2>Constructor de<br>mensaje persuasivo</h2></div>
+  <p class="lead">Diseña un mensaje eligiendo sus elementos. Al final descubrirás qué ruta activa y qué tan efectivo sería para producir un cambio duradero.</p>
+  <p class="bld-intro">Selecciona una opción en cada paso —los resultados cambian según la combinación.</p>
+
+  <div class="bld-step">
+    <div class="bld-title">Paso 1 — Implicación del receptor con el tema</div>
+    <div class="bld-opts">
+      <div class="bopt" data-g="inv" data-v="alto" onclick="pick(this)">Alto (afecta su vida, salud o valores)</div>
+      <div class="bopt" data-g="inv" data-v="bajo" onclick="pick(this)">Bajo (tema trivial o ajeno)</div>
+    </div>
+  </div>
+  <div class="bld-step">
+    <div class="bld-title">Paso 2 — Tipo de fuente</div>
+    <div class="bld-opts">
+      <div class="bopt" data-g="fuente" data-v="experto" onclick="pick(this)">Experto certificado en el tema</div>
+      <div class="bopt" data-g="fuente" data-v="celebridad" onclick="pick(this)">Celebridad o influencer</div>
+      <div class="bopt" data-g="fuente" data-v="cercano" onclick="pick(this)">Persona cercana (amigo, familiar)</div>
+      <div class="bopt" data-g="fuente" data-v="anonimo" onclick="pick(this)">Fuente anónima o desconocida</div>
+    </div>
+  </div>
+  <div class="bld-step">
+    <div class="bld-title">Paso 3 — Tipo de contenido</div>
+    <div class="bld-opts">
+      <div class="bopt" data-g="cont" data-v="datos" onclick="pick(this)">Datos, estudios y evidencia</div>
+      <div class="bopt" data-g="cont" data-v="emocion" onclick="pick(this)">Historia emotiva o experiencia personal</div>
+      <div class="bopt" data-g="cont" data-v="estetica" onclick="pick(this)">Imágenes, música, estética (sin argumento)</div>
+    </div>
+  </div>
+  <div class="bld-step">
+    <div class="bld-title">Paso 4 — Contexto de recepción</div>
+    <div class="bld-opts">
+      <div class="bopt" data-g="ctx" data-v="activo" onclick="pick(this)">Receptor dispuesto a analizar con tiempo</div>
+      <div class="bopt" data-g="ctx" data-v="pasivo" onclick="pick(this)">Receptor distraído o con poco tiempo</div>
+    </div>
+  </div>
+
+  <button class="btn-gen" id="btnG" onclick="genResult()" disabled>Generar análisis</button>
+
+  <div class="bld-result" id="bldR">
+    <div class="bld-ruta" id="bRuta"></div>
+    <div class="bld-sub" id="bSub"></div>
+    <div class="bld-desc" id="bDesc"></div>
+    <div class="bld-tip" id="bTip"></div>
+  </div>
+</section>
+
+<!-- CONCLUSIÓN -->
+<section id="final" class="section">
+  <div class="sh"><span class="sn">06</span><h2>Conclusión</h2></div>
+  <div class="conc">
+    <h2>Creer es actuar</h2>
+    <p>Las actitudes no son opiniones flotantes: son estructuras cognitivas, emocionales y conductuales que moldean cada decisión. Entender cómo se forman, cuándo cambian y por qué algunas persisten es comprender una de las fuerzas más potentes detrás del comportamiento social. Y reconocer las rutas de persuasión es la primera defensa ante ellas.</p>
+  </div>
+</section>
+
+<footer>Actitudes y Creencias &nbsp;·&nbsp; Semana 3 &nbsp;·&nbsp; Psicología Social &nbsp;·&nbsp; César Delgado</footer>
+
+<script>
+/* SCROLL */
+const mq=window.matchMedia('(min-width:769px)');
+document.querySelectorAll('.section').forEach(s=>{
+  if(mq.matches)new IntersectionObserver(([e])=>{if(e.isIntersecting)s.classList.add('visible');},{threshold:.08}).observe(s);
+  else s.classList.add('visible');
+});
+
+/* NAV DOTS */
+const nds=document.querySelectorAll('.nd');
+const nts=nds.length?[...nds].map(d=>document.getElementById(d.dataset.t)):[];
+if(mq.matches){
+  nts.forEach((t,i)=>{if(!t)return;new IntersectionObserver(([e])=>{if(e.isIntersecting){nds.forEach(d=>d.classList.remove('active'));nds[i].classList.add('active');}},{threshold:.3}).observe(t);});
+  nds.forEach((d,i)=>d.addEventListener('click',()=>nts[i]?.scrollIntoView({behavior:'smooth'})));
+}
+
+/* QUIZ DATA */
+const ANS={r1:'peri',e1:'fuente',r2:'central',e2:'receptor',r3:'peri',e3:'contenido',r4:'central',e4:'receptor'};
+const EXP=[
+  {ok:'Ruta periférica · Fuente','txt':'Aunque usa jerga médica, no presenta evidencia. El cambio de actitud se basó en la <strong>confianza superficial</strong> en su título, no en analizar el contenido. Eso es ruta periférica.','fail':'Recuerda: la ruta central requiere que el receptor <em>analice y evalúe el contenido</em>. Aquí no hay contenido que evaluar — solo credenciales percibidas.'},
+  {ok:'Ruta central · Receptor','txt':'El receptor tenía <strong>alta implicación personal</strong> (su propia salud) y eso activó el procesamiento profundo. El elemento clave no es la fuente del informe, sino la motivación del receptor para analizarlo con cuidado.','fail':'La clave aquí es que el receptor <em>eligió</em> analizar el contenido por motivación propia, no por la calidad de la fuente. El alto involucramiento personal activa la ruta central.'},
+  {ok:'Ruta periférica · Contenido','txt':'El contenido existe, pero funciona de forma <strong>emocional y estética</strong>, no racional. La música nostálgica genera asociaciones positivas sin que el receptor evalúe la calidad del producto. Es ruta periférica con apelación emocional.','fail':'Atención: que haya "contenido" no implica ruta central. La ruta depende de <em>cómo</em> se procesa, no de qué se muestra. Imágenes y música activan respuestas automáticas, no análisis.'},
+  {ok:'Ruta central · Receptor','txt':'La fuente (sin título) no era la clave. Los estudiantes <strong>investigaron por su cuenta</strong> — eso es procesamiento profundo activado por su propio interés. La ruta central no depende de la fuente, sino del nivel de elaboración del receptor.','fail':'Este es el más tramposo: la fuente sin credenciales haría pensar en ruta periférica, pero los receptores procesaron de forma profunda por iniciativa propia. El receptor de alta motivación puede activar la ruta central con cualquier fuente.'}
+];
+
+function checkQuiz(){
+  let score=0,total=8;
+  [1,2,3,4].forEach(i=>{
+    const rv=document.querySelector(`input[name=r${i}]:checked`)?.value;
+    const ev=document.querySelector(`input[name=e${i}]:checked`)?.value;
+    const rok=rv===ANS['r'+i],eok=ev===ANS['e'+i];
+    if(rok)score++;if(eok)score++;
+    const fb=document.getElementById('fb'+i);
+    const card=document.getElementById('sc'+i);
+    const both=rok&&eok;
+    card.classList.add(both?'correct':'wrong');
+    fb.innerHTML=`<strong>${both?'✓ Correcto':'✗ Revisa'}</strong>${both?EXP[i-1].txt:EXP[i-1].fail}`;
+    fb.className='sc-fb '+(both?'ok':'no');
+    fb.style.display='block';
+  });
+  const msgs=['Repasa las rutas ELM con calma.','Vas bien, unos conceptos a reforzar.','¡Buen análisis! Casi todo correcto.','¡Perfecto! Dominas la persuasión.'];
+  const sc=document.getElementById('qscore');
+  sc.style.display='block';
+  document.getElementById('qnum').textContent=score+'/'+total;
+  document.getElementById('qmsg').textContent=msgs[Math.floor(score/2.1)];
+  document.getElementById('btnQ').disabled=true;
+  document.getElementById('btnQ').textContent='Actividad completada ✓';
+  sc.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+/* BUILDER */
+const sel={};
+function pick(el){
+  const g=el.dataset.g,v=el.dataset.v;
+  document.querySelectorAll(`.bopt[data-g="${g}"]`).forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');sel[g]=v;
+  const filled=Object.keys(sel).length===4;
+  document.getElementById('btnG').disabled=!filled;
+}
+
+function genResult(){
+  const {inv,fuente,cont,ctx}=sel;
+  let score=0;
+  if(inv==='alto')score+=2;
+  if(fuente==='experto')score+=2;else if(fuente==='cercano')score+=1;
+  if(cont==='datos')score+=2;else if(cont==='emocion')score+=1;
+  if(ctx==='activo')score+=2;
+
+  let ruta,sub,desc,tip;
+  if(score>=6){
+    ruta='Ruta central';sub='CAMBIO DURADERO · ALTA ELABORACIÓN';
+    desc='Tu mensaje tiene todas las condiciones para activar un procesamiento profundo: el receptor está motivado, la fuente es creíble, el contenido es sólido y hay tiempo para analizar. El cambio de actitud que generes será más resistente y persistente.';
+    tip='Ideal para campañas de salud, educación o cualquier contexto donde importa que el cambio sea real y duradero.';
+  }else if(score<=3){
+    ruta='Ruta periférica';sub='IMPACTO RÁPIDO · BAJA ELABORACIÓN';
+    desc='Las condiciones apuntan a un cambio superficial y rápido. El receptor no está motivado para analizar, la fuente o el contenido no invitan a profundizar, o el contexto no lo permite. El efecto puede ser inmediato pero poco duradero.';
+    tip='Funciona para decisiones de bajo involucramiento (compras impulsivas, preferencias de marca) pero no para cambios de actitud profundos.';
+  }else{
+    ruta='Combinación de rutas';sub='EFECTIVIDAD MIXTA · ALCANCE AMPLIO';
+    desc='Tu mensaje activa elementos de ambas rutas. Parte del público lo procesará en profundidad; otro lo adoptará por señales periféricas. Esto puede ser estratégico si buscas alcanzar audiencias con distintos niveles de interés en el tema.';
+    tip='Recomendable cuando no controlas el nivel de involucramiento del receptor o necesitas impactar a grupos muy diversos.';
+  }
+  document.getElementById('bRuta').textContent=ruta;
+  document.getElementById('bSub').textContent=sub;
+  document.getElementById('bDesc').textContent=desc;
+  document.getElementById('bTip').textContent='💡 '+tip;
+  const r=document.getElementById('bldR');
+  r.style.display='block';
+  r.scrollIntoView({behavior:'smooth',block:'center'});
+  document.getElementById('btnG').disabled=true;
+  document.getElementById('btnG').textContent='Análisis generado ✓';
+}
+</script>
+</body>
+</html>

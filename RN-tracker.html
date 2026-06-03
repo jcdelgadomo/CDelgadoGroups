@@ -179,7 +179,7 @@
             width: 100%;
         }
         input:focus, textarea:focus { outline: none; border-color: #ff8c42; box-shadow: 0 0 0 2px rgba(255, 140, 66, 0.2); }
-        textarea { resize: vertical; min-height: 200px; }
+        textarea { resize: vertical; min-height: 80px; }
         .pregunta-item {
             background: #1f1f23;
             border-left: 3px solid #ff8c42;
@@ -209,7 +209,6 @@
             transition: 0.2s;
         }
         .btn-sm:hover { background: #ff8c42; color: #0b0b0e; }
-        /* Estilos para subpreguntas */
         .subpreguntas-container {
             margin-left: 2rem;
             margin-top: 0.8rem;
@@ -231,7 +230,6 @@
             flex-wrap: wrap;
             gap: 0.5rem;
         }
-        /* Estilos para impresión del PDF completo */
         @media print {
             body { background: white; color: black; padding: 0; margin: 0; }
             .sidebar, .mobile-menu-btn, .sidebar-actions, .sidebar-footer, .btn-sm, .btn-icon, .acciones-pregunta, .btn-pdf { display: none !important; }
@@ -326,7 +324,6 @@
         guardarLocalStorage();
     }
 
-    // Actualizar badges de HU sin recargar sección
     function actualizarBadgesHU() {
         const badges = document.querySelectorAll('.hu-badge');
         badges.forEach(badge => {
@@ -334,7 +331,6 @@
         });
     }
 
-    // ---------- FUNCIÓN AUXILIAR PARA GENERAR TABLAS (con subpreguntas) ----------
     function generarTablaPreguntas(preguntas) {
         if (!preguntas || !preguntas.length) return `<div class="empty-state">Sin preguntas definidas para esta sección.</div>`;
         let html = `<table><thead><tr><th>#</th><th>Pregunta</th><th>Respuesta</th></tr></thead><tbody>`;
@@ -351,7 +347,6 @@
         return html;
     }
 
-    // ---------- FUNCIÓN PARA EXPORTAR PDF COMPLETO (CORREGIDA: UNA SOLA VEZ, CIERRA VENTANA) ----------
     function exportarPDFCompleto() {
         if (!appData?.hu?.id) {
             alert("No hay datos de Historia de Usuario para exportar.");
@@ -393,10 +388,7 @@
             </head>
             <body>
                 <div class="header">
-                    <div class="header-title">
-                        <h1>Reglas de Negocio</h1>
-                        <div class="subtitulo">Documento de análisis — ${versionTexto}</div>
-                    </div>
+                    <div class="header-title"><h1>Reglas de Negocio</h1><div class="subtitulo">Documento de análisis — ${versionTexto}</div></div>
                     <div class="header-badge">${escapeHtml(appData.hu.id)}</div>
                 </div>
                 <div class="hu-card">
@@ -413,23 +405,16 @@
             </html>
         `;
         const ventana = window.open('', '_blank');
-        if (!ventana) {
-            alert("El navegador bloqueó la ventana emergente. Permite los popups para este sitio e intenta de nuevo.");
-            return;
-        }
+        if (!ventana) { alert("El navegador bloqueó la ventana emergente. Permite los popups para este sitio e intenta de nuevo."); return; }
         ventana.document.write(htmlContent);
         ventana.document.close();
-
-        // Una sola llamada a print y luego cerramos la ventana
         ventana.onload = () => {
             ventana.print();
             ventana.onafterprint = () => ventana.close();
-            // Fallback por si afterprint no se dispara
             setTimeout(() => ventana.close(), 1000);
         };
     }
     
-    // ---------- FUNCIÓN PARA EXPORTAR SECCIÓN INDIVIDUAL (PDF) ----------
     function exportarSeccionPDF(titulo, contenidoHTML, huId, version) {
         const ventana = window.open('', '_blank');
         ventana.document.write(`
@@ -444,7 +429,7 @@
         setTimeout(() => ventana.close(), 1000);
     }
 
-    // ---------- RENDERIZADO DE SECCIONES (con subpreguntas) ----------
+    // Renderizado de sección HU (con textarea para campos largos)
     function renderizarSeccion(seccion) {
         if (seccion === "hu") {
             contenidoDinamico.innerHTML = `
@@ -455,9 +440,9 @@
                         <div class="field"><label><i class="fas fa-code-branch"></i> Versión</label><input type="text" id="huVersion" value="${escapeHtml(appData.hu.version)}" placeholder="v1"></div>
                     </div>
                     <div class="hu-form">
-                        <div class="input-group"><label><i class="fas fa-user"></i> Como (rol)</label><input type="text" id="huComo" value="${escapeHtml(appData.hu.como)}" placeholder="Descripción de rol dentro de la institución"></div>
-                        <div class="input-group"><label><i class="fas fa-cog"></i> Quiero (funcionalidad)</label><input type="text" id="huQuiero" value="${escapeHtml(appData.hu.quiero)}" placeholder="Actividad que se debe, quiere, o necesita desempeñar"></div>
-                        <div class="input-group"><label><i class="fas fa-bullseye"></i> Para (objetivo)</label><input type="text" id="huPara" value="${escapeHtml(appData.hu.para)}" placeholder="Motivo u objetivo de la actividad a desempeñar"></div>
+                        <div class="input-group"><label><i class="fas fa-user"></i> Como (rol)</label><textarea id="huComo" rows="2" placeholder="Descripción de rol dentro de la institución">${escapeHtml(appData.hu.como)}</textarea></div>
+                        <div class="input-group"><label><i class="fas fa-cog"></i> Quiero (funcionalidad)</label><textarea id="huQuiero" rows="2" placeholder="Actividad que se debe, quiere, o necesita desempeñar">${escapeHtml(appData.hu.quiero)}</textarea></div>
+                        <div class="input-group"><label><i class="fas fa-bullseye"></i> Para (objetivo)</label><textarea id="huPara" rows="2" placeholder="Motivo u objetivo de la actividad a desempeñar">${escapeHtml(appData.hu.para)}</textarea></div>
                     </div>
                 </div>
             `;
@@ -538,7 +523,7 @@
                         </div>
                     </div>
                 `;
-                // Eventos para preguntas principales
+                // Eventos (editar, eliminar, subpreguntas, etc.) igual que antes
                 document.querySelectorAll('.editar-pregunta').forEach(btn => {
                     btn.addEventListener('click', () => {
                         const catId = btn.getAttribute('data-cat');
@@ -570,7 +555,6 @@
                         guardarLocalStorage();
                     });
                 });
-                // Eventos para subpreguntas
                 document.querySelectorAll('.agregar-subpregunta').forEach(btn => {
                     btn.addEventListener('click', () => {
                         const catId = btn.getAttribute('data-cat');
@@ -693,7 +677,7 @@
         return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : (m === '<' ? '&lt;' : '&gt;'));
     }
 
-    // ---------- EXPORTAR / IMPORTAR GLOBALES (nombre de archivo con ID y versión) ----------
+    // Exportaciones globales
     function getBaseFileName() {
         let base = "Reglas de negocio";
         if (appData.hu.id) base += ` - ${appData.hu.id}`;
@@ -781,7 +765,6 @@
         }
     }
 
-    // ---------- NAVEGACIÓN Y EVENTOS GLOBALES ----------
     function initNavigation() {
         document.querySelectorAll('.sidebar-nav a').forEach(link => {
             link.addEventListener('click', (e) => {

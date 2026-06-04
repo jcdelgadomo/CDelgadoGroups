@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
-        /* ===== ESTILOS COMPLETOS (sin cambios) ===== */
+        /* ===== ESTILOS COMPLETOS (sin cambios importantes, solo añadimos .copy-pregunta) ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; transition: background 0.3s, color 0.3s; }
         body.dark { background: radial-gradient(circle at 20% 30%, #1a1a1c, #0b0b0e); color: #e0e0e0; }
@@ -239,7 +239,7 @@
         body.dark .btn-sm:hover, body.light .btn-sm:hover { background: #ff8c42; color: #0b0b0e; border-color: #ff8c42; }
         .flex-buttons { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 1.5rem; }
         
-        /* Estilos para registros guardados - nuevo diseño colapsable */
+        /* Estilos para registros guardados */
         .grupo-item {
             border-radius: 16px;
             margin-bottom: 1rem;
@@ -339,13 +339,37 @@
             padding: 0.6rem 0.8rem;
             border-radius: 8px;
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             gap: 0.8rem;
             border: 1px solid;
+            flex-wrap: wrap;
         }
         body.dark .pregunta-item-chat { background: #0e0e10; border-color: #2a2a2e; color: #ccc; }
         body.light .pregunta-item-chat { background: #f8f9fa; border-color: #dee2e6; color: #212529; }
-        .pregunta-num { background: #ff8c42; color: #0b0b0e; font-weight: bold; width: 26px; height: 26px; border-radius: 30px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; flex-shrink: 0; }
+        .pregunta-tipo {
+            background: #ff8c42;
+            color: #0b0b0e;
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+        .pregunta-texto {
+            flex: 1;
+        }
+        .copy-pregunta-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #aaa;
+            font-size: 1rem;
+            padding: 0.2rem;
+            transition: 0.2s;
+        }
+        .copy-pregunta-btn:hover {
+            color: #ff8c42;
+        }
         .empty-state { padding: 2rem; text-align: center; border-radius: 12px; }
         body.dark .empty-state { color: #aaa; background: #0e0e10; }
         body.light .empty-state { color: #6c757d; background: #f8f9fa; }
@@ -432,7 +456,7 @@
 </div>
 
 <script>
-    // ---------- DATOS (sin cambios) ----------
+    // ---------- DATOS ----------
     let appData = {
         grupos: [],
         borrador: {
@@ -574,9 +598,7 @@
             return;
         }
         let nombreBase = prompt("Ingresa un nombre para la copia de seguridad:", "backup");
-        if (!nombreBase) {
-            nombreBase = "backup";
-        }
+        if (!nombreBase) nombreBase = "backup";
         nombreBase = nombreBase.replace(/[^a-z0-9áéíóúñü_-]/gi, '_');
         const nombreArchivo = `ChatBot-backup-${nombreBase}.json`;
         const dataStr = JSON.stringify(appData.grupos, null, 2);
@@ -616,21 +638,10 @@
         }
         return vector;
     }
-    
-    // ---------- FUNCIÓN MODIFICADA: Exportar a Excel con encabezados normalizados ----------
     function exportarChatbotExcel() {
         const vector = obtenerArrayParaVector();
         if (!vector.length) { alert("No hay grupos guardados."); return; }
-        // Encabezados normalizados (minúsculas, sin acentos, snake_case)
-        const headers = [
-            "direccion",
-            "pregunta",
-            "respuesta",
-            "clasificacion",
-            "tema",
-            "palabras_clave",
-            "abreviaciones"
-        ];
+        const headers = ["direccion", "pregunta", "respuesta", "clasificacion", "tema", "palabras_clave", "abreviaciones"];
         const wsData = [headers];
         for (const item of vector) {
             wsData.push([
@@ -648,8 +659,6 @@
         XLSX.utils.book_append_sheet(wb, ws, "Preguntas");
         XLSX.writeFile(wb, `chatbot_preguntas.xlsx`);
     }
-    // ------------------------------------------------------------------------------------
-
     function exportarChatbotJSONVector() {
         const vector = obtenerArrayParaVector();
         if (!vector.length) { alert("No hay grupos guardados."); return; }
@@ -690,7 +699,7 @@
         });
     }
 
-    // --------------------- REGISTROS GUARDADOS (sin cambios) ---------------------
+    // --------------------- REGISTROS GUARDADOS (con tipos y botón copiar) ---------------------
     let currentSearchText = "";
     let currentDireccionFilter = "todos";
     let registrosDynamicContainer = null;
@@ -740,6 +749,7 @@
             resultadosContainer.innerHTML = `<div class="empty-state">No hay grupos que coincidan con los filtros.</div>`;
         } else {
             let gruposHtml = '';
+            const tipos = ["Aplicada", "Formal", "Simple"];
             filtered.forEach(grupo => {
                 const idx = appData.grupos.findIndex(g => g === grupo);
                 gruposHtml += `
@@ -763,9 +773,13 @@
                             <div class="preguntas-list">
                                 <strong><i class="fas fa-list"></i> Preguntas asociadas:</strong>
                                 <div style="margin-top: 0.5rem;">
-                                    <div class="pregunta-item-chat"><span class="pregunta-num">1</span><span class="pregunta-texto">${escapeHtml(grupo.preguntas[0])}</span></div>
-                                    <div class="pregunta-item-chat"><span class="pregunta-num">2</span><span class="pregunta-texto">${escapeHtml(grupo.preguntas[1])}</span></div>
-                                    <div class="pregunta-item-chat"><span class="pregunta-num">3</span><span class="pregunta-texto">${escapeHtml(grupo.preguntas[2])}</span></div>
+                                    ${grupo.preguntas.map((preg, i) => `
+                                        <div class="pregunta-item-chat">
+                                            <span class="pregunta-tipo">${tipos[i]}</span>
+                                            <span class="pregunta-texto">${escapeHtml(preg)}</span>
+                                            <button class="copy-pregunta-btn" data-texto="${escapeHtml(preg)}" title="Copiar pregunta"><i class="fas fa-copy"></i></button>
+                                        </div>
+                                    `).join('')}
                                 </div>
                             </div>
                         </div>
@@ -774,6 +788,21 @@
             });
             resultadosContainer.innerHTML = gruposHtml;
             attachGruposEvents();
+            // Agregar eventos de copiar
+            document.querySelectorAll('.copy-pregunta-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const texto = btn.getAttribute('data-texto');
+                    if (texto) {
+                        navigator.clipboard.writeText(texto).then(() => {
+                            // feedback visual opcional
+                            const originalIcon = btn.innerHTML;
+                            btn.innerHTML = '<i class="fas fa-check"></i>';
+                            setTimeout(() => { btn.innerHTML = originalIcon; }, 1500);
+                        }).catch(err => console.error('Error al copiar: ', err));
+                    }
+                });
+            });
         }
         const searchInput = document.getElementById('searchTextInput');
         const clearBtn = document.getElementById('clearSearchBtn');
@@ -823,7 +852,7 @@
                     setState(!isExpanded);
                 });
                 item.addEventListener('click', (e) => {
-                    if (e.target.closest('.editar-grupo') || e.target.closest('.eliminar-grupo') || e.target.closest('.toggle-icon')) return;
+                    if (e.target.closest('.editar-grupo') || e.target.closest('.eliminar-grupo') || e.target.closest('.toggle-icon') || e.target.closest('.copy-pregunta-btn')) return;
                     const isExpanded = detailsDiv.style.display === 'block';
                     setState(!isExpanded);
                 });
@@ -845,7 +874,7 @@
         });
     }
 
-    // --------------------- GENERADOR ---------------------
+    // --------------------- GENERADOR (sin cambios) ---------------------
     function renderizarGenerador() {
         const b = appData.borrador;
         const editando = appData.editandoIndex !== null;
@@ -893,7 +922,7 @@
                         </div>
                     </div>
                     <div class="pregunta-item-form">
-                        <label>Pregunta 3 (coloquial) *</label>
+                        <label>Pregunta 3 (coloquial / simple) *</label>
                         <div class="input-wrapper">
                             <textarea id="pregunta3" rows="3">${escapeHtml(b.pregunta3)}</textarea>
                             <button type="button" class="clear-field-inside" data-field="pregunta3" title="Limpiar campo"><i class="fas fa-times-circle"></i></button>

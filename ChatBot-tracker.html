@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
-        /* ===== ESTILOS COMPLETOS (igual que antes, con ajustes menores) ===== */
+        /* ===== ESTILOS COMPLETOS (sin cambios) ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; transition: background 0.3s, color 0.3s; }
         body.dark { background: radial-gradient(circle at 20% 30%, #1a1a1c, #0b0b0e); color: #e0e0e0; }
@@ -432,7 +432,7 @@
 </div>
 
 <script>
-    // ---------- DATOS ----------
+    // ---------- DATOS (sin cambios) ----------
     let appData = {
         grupos: [],
         borrador: {
@@ -575,10 +575,8 @@
         }
         let nombreBase = prompt("Ingresa un nombre para la copia de seguridad:", "backup");
         if (!nombreBase) {
-            // Si el usuario cancela o no ingresa nada, se usa "backup" por defecto
             nombreBase = "backup";
         }
-        // Limpiar caracteres no deseados para nombre de archivo (opcional)
         nombreBase = nombreBase.replace(/[^a-z0-9áéíóúñü_-]/gi, '_');
         const nombreArchivo = `ChatBot-backup-${nombreBase}.json`;
         const dataStr = JSON.stringify(appData.grupos, null, 2);
@@ -618,16 +616,40 @@
         }
         return vector;
     }
+    
+    // ---------- FUNCIÓN MODIFICADA: Exportar a Excel con encabezados normalizados ----------
     function exportarChatbotExcel() {
         const vector = obtenerArrayParaVector();
         if (!vector.length) { alert("No hay grupos guardados."); return; }
-        const wsData = [["Dirección", "Pregunta", "Respuesta", "Clasificación", "Tema", "Palabras Clave", "Abreviaciones"]];
-        for (const item of vector) wsData.push([item.direccion, item.pregunta, item.respuesta, item.clasificacion, item.tema, item.palabras_clave.join(", "), item.abreviaciones.join(", ")]);
+        // Encabezados normalizados (minúsculas, sin acentos, snake_case)
+        const headers = [
+            "direccion",
+            "pregunta",
+            "respuesta",
+            "clasificacion",
+            "tema",
+            "palabras_clave",
+            "abreviaciones"
+        ];
+        const wsData = [headers];
+        for (const item of vector) {
+            wsData.push([
+                item.direccion,
+                item.pregunta,
+                item.respuesta,
+                item.clasificacion,
+                item.tema,
+                item.palabras_clave.join(", "),
+                item.abreviaciones.join(", ")
+            ]);
+        }
         const ws = XLSX.utils.aoa_to_sheet(wsData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Preguntas");
         XLSX.writeFile(wb, `chatbot_preguntas.xlsx`);
     }
+    // ------------------------------------------------------------------------------------
+
     function exportarChatbotJSONVector() {
         const vector = obtenerArrayParaVector();
         if (!vector.length) { alert("No hay grupos guardados."); return; }
@@ -668,7 +690,7 @@
         });
     }
 
-    // --------------------- REGISTROS GUARDADOS (con nuevo diseño colapsable) ---------------------
+    // --------------------- REGISTROS GUARDADOS (sin cambios) ---------------------
     let currentSearchText = "";
     let currentDireccionFilter = "todos";
     let registrosDynamicContainer = null;
@@ -720,7 +742,6 @@
             let gruposHtml = '';
             filtered.forEach(grupo => {
                 const idx = appData.grupos.findIndex(g => g === grupo);
-                // Nuevo diseño: muestra badge de clasificación y respuesta, sin dirección (dirección va dentro del detalle)
                 gruposHtml += `
                     <div class="grupo-item" data-grupo-idx="${idx}">
                         <div class="grupo-header">
@@ -801,7 +822,6 @@
                     const isExpanded = detailsDiv.style.display === 'block';
                     setState(!isExpanded);
                 });
-                // Permitir clic en toda la tarjeta (excepto botones) para expandir/contraer
                 item.addEventListener('click', (e) => {
                     if (e.target.closest('.editar-grupo') || e.target.closest('.eliminar-grupo') || e.target.closest('.toggle-icon')) return;
                     const isExpanded = detailsDiv.style.display === 'block';

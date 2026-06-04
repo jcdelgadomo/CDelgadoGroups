@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ChatBot | Generador de Preguntas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <style>
+        /* ===== ESTILOS COMPLETOS (igual que antes, con ajustes menores) ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; transition: background 0.3s, color 0.3s; }
+        body.dark { background: radial-gradient(circle at 20% 30%, #1a1a1c, #0b0b0e); color: #e0e0e0; }
+        body.light { background: #f0f2f5; color: #1a1a2e; }
+        .app-layout { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 300px;
+            background: #0e0e10;
+            border-right: 1px solid #2e2e32;
+            padding: 1.5rem 1rem;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.3s ease, background 0.3s;
+            z-index: 100;
+        }
+        body.light .sidebar { background: #ffffff; border-right: 1px solid #d0d7de; }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; max-width: 100%; }
+        }
+        .sidebar-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid;
+            padding-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        body.dark .sidebar-header { border-color: #2e2e32; }
+        body.light .sidebar-header { border-color: #d0d7de; }
+        .sidebar-header h2 { font-size: 1.2rem; color: #ff8c42; }
+        .theme-toggle { background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: #ff8c42; }
+        .sidebar-nav { list-style: none; flex-grow: 1; }
+        .sidebar-nav li { margin: 0.5rem 0; }
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.7rem 1rem;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: 0.2s;
+            font-size: 0.9rem;
+        }
+        body.dark .sidebar-nav a { color: #ccc; }
+        body.light .sidebar-nav a { color: #333; }
+        .sidebar-nav a i { width: 24px; color: #ff8c42; }
+        .sidebar-nav a:hover, .sidebar-nav a.active {
+            background: #1f1f23;
+            color: #ff8c42;
+            border-left: 5px solid #ff8c42;
+        }
+        body.light .sidebar-nav a:hover, body.light .sidebar-nav a.active { background: #e9ecef; }
+        .protection-section {
+            margin: 1rem 0;
+            border-top: 1px solid;
+            padding-top: 1rem;
+        }
+        body.dark .protection-section { border-color: #2e2e32; }
+        body.light .protection-section { border-color: #d0d7de; }
+        .protection-section h4 { font-size: 0.8rem; margin-bottom: 0.6rem; color: #ff8c42; display: flex; align-items: center; gap: 0.5rem; }
+        .checkbox-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.4rem; }
+        .checkbox-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.7rem; }
+        body.dark .checkbox-item { color: #ccc; }
+        body.light .checkbox-item { color: #333; }
+        .checkbox-item input { width: auto; margin: 0; transform: scale(0.9); }
+        .sidebar-actions {
+            margin-top: 1rem;
+            border-top: 1px solid;
+            padding-top: 1rem;
+        }
+        body.dark .sidebar-actions { border-color: #2e2e32; }
+        body.light .sidebar-actions { border-color: #d0d7de; }
+        .sidebar-actions button, .sidebar-actions label {
+            display: block;
+            width: 100%;
+            padding: 0.6rem;
+            margin-bottom: 0.6rem;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 2px;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+        body.dark .sidebar-actions button, body.dark .sidebar-actions label {
+            background: #1f1f23;
+            color: #ccc;
+            border: 1px solid #3a3a40;
+        }
+        body.light .sidebar-actions button, body.light .sidebar-actions label {
+            background: #f8f9fa;
+            color: #212529;
+            border: 1px solid #ced4da;
+        }
+        .sidebar-actions button:hover, .sidebar-actions label:hover { border-color: #ff8c42; color: #ff8c42; }
+        .sidebar-footer {
+            font-size: 0.7rem;
+            text-align: center;
+            border-top: 1px solid;
+            padding-top: 1rem;
+            margin-top: 1rem;
+        }
+        body.dark .sidebar-footer { color: #6a6a70; border-color: #2c2c30; }
+        body.light .sidebar-footer { color: #6c757d; border-color: #dee2e6; }
+        .mobile-menu-btn {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 101;
+            background: #ff8c42;
+            color: #0b0b0e;
+            border: none;
+            padding: 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            display: none;
+            font-size: 1.2rem;
+        }
+        @media (max-width: 768px) { .mobile-menu-btn { display: block; } }
+        .main-content {
+            flex: 1;
+            margin-left: 300px;
+            padding: 2rem;
+            max-width: calc(100% - 300px);
+        }
+        @media (max-width: 768px) { .main-content { margin-left: 0; padding-top: 4rem; } }
+        .section-card {
+            border-radius: 12px;
+            padding: 1.8rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            transition: background 0.3s, border 0.3s;
+        }
+        body.dark .section-card { background: #141416; border: 1px solid #2e2e32; }
+        body.light .section-card { background: #ffffff; border: 1px solid #dee2e6; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.8rem;
+            color: #ff8c42;
+            border-left: 4px solid #ff8c42;
+            padding-left: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .edit-badge { background: #ff8c42; color: #0b0b0e; font-size: 0.8rem; padding: 0.2rem 0.8rem; border-radius: 20px; font-weight: bold; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 1.5rem; }
+        .full-width { grid-column: span 2; }
+        .input-group { display: flex; flex-direction: column; gap: 0.4rem; position: relative; margin-bottom: 0.5rem; }
+        .input-group label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #ff8c42;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .input-wrapper input, .input-wrapper textarea {
+            width: 100%;
+            padding-right: 2.2rem;
+        }
+        .input-wrapper textarea {
+            padding-right: 2.2rem;
+        }
+        .clear-field-inside {
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #aaa;
+            font-size: 1rem;
+            padding: 0.2rem;
+        }
+        .input-wrapper textarea + .clear-field-inside {
+            top: 0.8rem;
+            transform: none;
+        }
+        .clear-field-inside:hover {
+            color: #ff8c42;
+        }
+        input, textarea, select {
+            padding: 0.8rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            transition: 0.2s;
+            width: 100%;
+        }
+        body.dark input, body.dark textarea, body.dark select { background: #1f1f23; border: 1px solid #2e2e32; color: #e0e0e0; }
+        body.light input, body.light textarea, body.light select { background: #f8f9fa; border: 1px solid #ced4da; color: #212529; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: #ff8c42; box-shadow: 0 0 0 2px rgba(255, 140, 66, 0.2); }
+        .preguntas-horizontal { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }
+        @media (max-width: 768px) { .preguntas-horizontal { grid-template-columns: 1fr; } }
+        .pregunta-item-form {
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid;
+        }
+        body.dark .pregunta-item-form { background: #0e0e10; border-color: #2a2a2e; }
+        body.light .pregunta-item-form { background: #f8f9fa; border-color: #dee2e6; }
+        .pregunta-item-form label { font-size: 1rem; margin-bottom: 0.5rem; display: block; color: #ff8c42; font-weight: bold; }
+        .btn-sm {
+            padding: 0.5rem 1.2rem;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-right: 0.8rem;
+            margin-top: 0.5rem;
+            border: 1px solid;
+        }
+        body.dark .btn-sm { background: #2c2c30; border-color: #3a3a40; color: #e0e0e0; }
+        body.light .btn-sm { background: #e9ecef; border-color: #ced4da; color: #212529; }
+        body.dark .btn-sm:hover, body.light .btn-sm:hover { background: #ff8c42; color: #0b0b0e; border-color: #ff8c42; }
+        .flex-buttons { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 1.5rem; }
+        
+        /* Estilos para registros guardados - nuevo diseño colapsable */
+        .grupo-item {
+            border-radius: 16px;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        body.dark .grupo-item { background: #1a1a1e; border: 1px solid #2e2e32; }
+        body.light .grupo-item { background: #ffffff; border: 1px solid #dee2e6; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .grupo-item:hover { border-color: #ff8c42; }
+        .grupo-header {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .toggle-icon {
+            font-size: 1.2rem;
+            margin-right: auto;
+            cursor: pointer;
+        }
+        .clasificacion-badge {
+            background: #ff8c42;
+            color: #0b0b0e;
+            font-size: 0.8rem;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 0.8rem;
+        }
+        .respuesta-preview {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin: 0.5rem 0 0.8rem 0;
+            padding: 0.5rem;
+            border-radius: 8px;
+        }
+        body.dark .respuesta-preview { background: #0e0e10; }
+        body.light .respuesta-preview { background: #f8f9fa; }
+        .grupo-details {
+            display: none;
+            margin-top: 1rem;
+            padding-top: 0.5rem;
+            border-top: 1px dashed;
+        }
+        body.dark .grupo-details { border-color: #2e2e32; }
+        body.light .grupo-details { border-color: #dee2e6; }
+        .meta-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+            align-items: flex-start;
+        }
+        .chip-group {
+            background: rgba(255, 140, 66, 0.1);
+            border-radius: 12px;
+            padding: 0.5rem 0.8rem;
+            flex: 1 1 auto;
+            min-width: 150px;
+        }
+        body.dark .chip-group { background: #0e0e10; border: 1px solid #2e2e32; }
+        body.light .chip-group { background: #f8f9fa; border: 1px solid #dee2e6; }
+        .chip-group strong { display: block; font-size: 0.7rem; text-transform: uppercase; color: #ff8c42; margin-bottom: 0.3rem; }
+        .chip-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.2rem;
+        }
+        .chip {
+            background: #ff8c42;
+            color: #0b0b0e;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-weight: 500;
+            display: inline-block;
+        }
+        .chip-text {
+            background: transparent;
+            color: inherit;
+            font-size: 0.85rem;
+        }
+        .respuesta-box {
+            border-left: 3px solid #ff8c42;
+            padding: 0.8rem;
+            border-radius: 8px;
+            margin: 0.8rem 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        .preguntas-list { margin-top: 1rem; }
+        .pregunta-item-chat {
+            margin-bottom: 0.8rem;
+            padding: 0.6rem 0.8rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
+            border: 1px solid;
+        }
+        body.dark .pregunta-item-chat { background: #0e0e10; border-color: #2a2a2e; color: #ccc; }
+        body.light .pregunta-item-chat { background: #f8f9fa; border-color: #dee2e6; color: #212529; }
+        .pregunta-num { background: #ff8c42; color: #0b0b0e; font-weight: bold; width: 26px; height: 26px; border-radius: 30px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; flex-shrink: 0; }
+        .empty-state { padding: 2rem; text-align: center; border-radius: 12px; }
+        body.dark .empty-state { color: #aaa; background: #0e0e10; }
+        body.light .empty-state { color: #6c757d; background: #f8f9fa; }
+        .btn-icon { background: transparent; border: none; cursor: pointer; font-size: 1.2rem; transition: 0.2s; margin-left: 0.5rem; }
+        body.dark .btn-icon { color: #aaa; }
+        body.light .btn-icon { color: #6c757d; }
+        .btn-icon:hover { color: #ff8c42; }
+        
+        .filter-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+        .filter-group {
+            flex: 1;
+            min-width: 180px;
+            position: relative;
+        }
+        .filter-group label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #ff8c42;
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+        .search-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .search-wrapper input {
+            padding-right: 2.2rem;
+        }
+        .clear-search {
+            position: absolute;
+            right: 0.5rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #aaa;
+            font-size: 1rem;
+            padding: 0.2rem;
+        }
+        .clear-search:hover {
+            color: #ff8c42;
+        }
+    </style>
+</head>
+<body class="dark">
+<button class="mobile-menu-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
+<div class="app-layout">
+    <div class="sidebar" id="sidebar">
+        <div>
+            <div class="sidebar-header">
+                <h2><i class="fas fa-comments"></i> ChatBot</h2>
+                <button id="themeToggle" class="theme-toggle"><i class="fas fa-moon"></i></button>
+            </div>
+            <ul class="sidebar-nav">
+                <li><a href="#" data-section="generador"><i class="fas fa-edit"></i> Generador</a></li>
+                <li><a href="#" data-section="registros"><i class="fas fa-database"></i> Registros guardados</a></li>
+            </ul>
+            <div class="protection-section">
+                <h4><i class="fas fa-shield-alt"></i> Proteger campos</h4>
+                <div class="checkbox-grid" id="checkboxesContainer"></div>
+            </div>
+        </div>
+        <div>
+            <div class="sidebar-actions">
+                <button id="exportarExcelBtn"><i class="fas fa-file-excel"></i> Exportar a Excel</button>
+                <button id="guardarCopiaSeguridadBtn"><i class="fas fa-save"></i> Guardar copia de seguridad</button>
+                <label for="importarGruposJson" style="cursor:pointer;"><i class="fas fa-upload"></i> Cargar copia de seguridad</label>
+                <button id="exportarVectorJsonBtn"><i class="fas fa-download"></i> Exportar a JSON (vector)</button>
+                <input type="file" id="importarGruposJson" accept=".json" style="display:none">
+                <button id="limpiarHistorialBtn"><i class="fas fa-trash-alt"></i> Limpiar todo el historial</button>
+            </div>
+            <div class="sidebar-footer"><i class="fas fa-database"></i> LocalStorage automático</div>
+        </div>
+    </div>
+    <div class="main-content">
+        <div id="contenidoDinamico"></div>
+    </div>
+</div>
+
+<script>
+    // ---------- DATOS ----------
+    let appData = {
+        grupos: [],
+        borrador: {
+            direccion: "", respuesta: "", clasificacion: "", tema: "", palabras_clave: "", abreviaciones: "",
+            pregunta1: "", pregunta2: "", pregunta3: ""
+        },
+        editandoIndex: null,
+        protectedFields: {
+            direccion: false, respuesta: false, clasificacion: false, tema: false,
+            palabras_clave: false, abreviaciones: false, pregunta1: false, pregunta2: false, pregunta3: false
+        }
+    };
+    let currentSection = "generador";
+    const contenidoDinamico = document.getElementById('contenidoDinamico');
+
+    // Tema
+    let currentTheme = localStorage.getItem('chatbotTheme') || 'dark';
+    function applyTheme(theme) {
+        document.body.classList.remove('dark', 'light');
+        document.body.classList.add(theme);
+        const toggleBtn = document.getElementById('themeToggle');
+        if (toggleBtn) toggleBtn.innerHTML = theme === 'dark' ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+        localStorage.setItem('chatbotTheme', theme);
+    }
+    function toggleTheme() { currentTheme = currentTheme === 'dark' ? 'light' : 'dark'; applyTheme(currentTheme); }
+
+    function guardarLocalStorage() {
+        localStorage.setItem('chatbotData', JSON.stringify({
+            grupos: appData.grupos,
+            borrador: appData.borrador,
+            editandoIndex: appData.editandoIndex,
+            protectedFields: appData.protectedFields
+        }));
+    }
+    function cargarLocalStorage() {
+        const saved = localStorage.getItem('chatbotData');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                if (parsed.grupos) appData.grupos = parsed.grupos;
+                if (parsed.borrador) appData.borrador = parsed.borrador;
+                if (parsed.editandoIndex !== undefined) appData.editandoIndex = parsed.editandoIndex;
+                if (parsed.protectedFields) appData.protectedFields = parsed.protectedFields;
+            } catch(e) {}
+        }
+        guardarLocalStorage();
+    }
+    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : (m === '<' ? '&lt;' : '&gt;')); }
+
+    function limpiarCampo(nombreCampo) {
+        if (appData.protectedFields[nombreCampo]) { alert(`El campo "${nombreCampo}" está protegido. No se puede borrar.`); return; }
+        appData.borrador[nombreCampo] = "";
+        guardarLocalStorage();
+        renderizarSeccion(currentSection);
+    }
+
+    function limpiarFormularioRespetandoProteccion() {
+        const p = appData.protectedFields;
+        if (!p.direccion) appData.borrador.direccion = "";
+        if (!p.respuesta) appData.borrador.respuesta = "";
+        if (!p.clasificacion) appData.borrador.clasificacion = "";
+        if (!p.tema) appData.borrador.tema = "";
+        if (!p.palabras_clave) appData.borrador.palabras_clave = "";
+        if (!p.abreviaciones) appData.borrador.abreviaciones = "";
+        if (!p.pregunta1) appData.borrador.pregunta1 = "";
+        if (!p.pregunta2) appData.borrador.pregunta2 = "";
+        if (!p.pregunta3) appData.borrador.pregunta3 = "";
+        guardarLocalStorage();
+    }
+    function resetearModoEdicion() { appData.editandoIndex = null; guardarLocalStorage(); }
+    function guardarGrupo() {
+        const b = appData.borrador;
+        if (!b.direccion.trim() || !b.respuesta.trim() || !b.pregunta1.trim() || !b.pregunta2.trim() || !b.pregunta3.trim()) {
+            alert("Completa Dirección, Respuesta y las 3 preguntas.");
+            return;
+        }
+        const palabrasClave = b.palabras_clave.split(',').map(s => s.trim()).filter(s => s);
+        const abreviaciones = b.abreviaciones.split(',').map(s => s.trim()).filter(s => s);
+        const nuevoGrupo = {
+            direccion: b.direccion.trim(),
+            respuesta: b.respuesta.trim(),
+            clasificacion: b.clasificacion.trim(),
+            tema: b.tema.trim(),
+            palabras_clave: palabrasClave,
+            abreviaciones: abreviaciones,
+            preguntas: [b.pregunta1.trim(), b.pregunta2.trim(), b.pregunta3.trim()]
+        };
+        if (appData.editandoIndex !== null) {
+            if (confirm("¿Actualizar este registro?")) {
+                appData.grupos[appData.editandoIndex] = nuevoGrupo;
+                resetearModoEdicion();
+                limpiarFormularioRespetandoProteccion();
+                guardarLocalStorage();
+                renderizarSeccion(currentSection);
+                alert("Registro actualizado.");
+            }
+        } else {
+            appData.grupos.push(nuevoGrupo);
+            limpiarFormularioRespetandoProteccion();
+            guardarLocalStorage();
+            renderizarSeccion(currentSection);
+        }
+    }
+    function limpiarFormularioManual() { limpiarFormularioRespetandoProteccion(); resetearModoEdicion(); renderizarSeccion(currentSection); }
+    function editarGrupo(index) {
+        const grupo = appData.grupos[index];
+        appData.borrador = {
+            direccion: grupo.direccion,
+            respuesta: grupo.respuesta,
+            clasificacion: grupo.clasificacion,
+            tema: grupo.tema,
+            palabras_clave: grupo.palabras_clave.join(", "),
+            abreviaciones: grupo.abreviaciones.join(", "),
+            pregunta1: grupo.preguntas[0],
+            pregunta2: grupo.preguntas[1],
+            pregunta3: grupo.preguntas[2]
+        };
+        appData.editandoIndex = index;
+        guardarLocalStorage();
+        currentSection = "generador";
+        renderizarSeccion("generador");
+    }
+    function eliminarGrupo(index) {
+        if (confirm("¿Eliminar este grupo?")) {
+            appData.grupos.splice(index, 1);
+            if (appData.editandoIndex !== null && appData.editandoIndex >= index) {
+                if (appData.editandoIndex === index) resetearModoEdicion();
+                else if (appData.editandoIndex > index) appData.editandoIndex--;
+            }
+            guardarLocalStorage();
+            renderizarSeccion(currentSection);
+        }
+    }
+
+    // Persistencia en JSON (copia de seguridad)
+    function exportarCopiaSeguridad() {
+        if (appData.grupos.length === 0) {
+            alert("No hay grupos guardados para exportar.");
+            return;
+        }
+        let nombreBase = prompt("Ingresa un nombre para la copia de seguridad:", "backup");
+        if (!nombreBase) {
+            // Si el usuario cancela o no ingresa nada, se usa "backup" por defecto
+            nombreBase = "backup";
+        }
+        // Limpiar caracteres no deseados para nombre de archivo (opcional)
+        nombreBase = nombreBase.replace(/[^a-z0-9áéíóúñü_-]/gi, '_');
+        const nombreArchivo = `ChatBot-backup-${nombreBase}.json`;
+        const dataStr = JSON.stringify(appData.grupos, null, 2);
+        const blob = new Blob([dataStr], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = nombreArchivo;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function importarCopiaSeguridad(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const imported = JSON.parse(e.target.result);
+                if (Array.isArray(imported) && imported.length && imported[0].direccion !== undefined && imported[0].preguntas) {
+                    appData.grupos = imported;
+                    resetearModoEdicion();
+                    guardarLocalStorage();
+                    renderizarSeccion(currentSection);
+                    alert("Copia de seguridad cargada correctamente.");
+                } else {
+                    alert("Formato inválido. Se necesita un array de grupos.");
+                }
+            } catch(err) { alert("Error al leer el archivo JSON: " + err.message); }
+        };
+        reader.readAsText(file);
+    }
+
+    function obtenerArrayParaVector() {
+        const vector = [];
+        for (const grupo of appData.grupos) {
+            const base = { direccion: grupo.direccion, respuesta: grupo.respuesta, clasificacion: grupo.clasificacion, tema: grupo.tema, palabras_clave: grupo.palabras_clave, abreviaciones: grupo.abreviaciones };
+            for (let i = 0; i < grupo.preguntas.length; i++) vector.push({ ...base, pregunta: grupo.preguntas[i] });
+        }
+        return vector;
+    }
+    function exportarChatbotExcel() {
+        const vector = obtenerArrayParaVector();
+        if (!vector.length) { alert("No hay grupos guardados."); return; }
+        const wsData = [["Dirección", "Pregunta", "Respuesta", "Clasificación", "Tema", "Palabras Clave", "Abreviaciones"]];
+        for (const item of vector) wsData.push([item.direccion, item.pregunta, item.respuesta, item.clasificacion, item.tema, item.palabras_clave.join(", "), item.abreviaciones.join(", ")]);
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Preguntas");
+        XLSX.writeFile(wb, `chatbot_preguntas.xlsx`);
+    }
+    function exportarChatbotJSONVector() {
+        const vector = obtenerArrayParaVector();
+        if (!vector.length) { alert("No hay grupos guardados."); return; }
+        const blob = new Blob([JSON.stringify(vector, null, 2)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `chatbot_preguntas_vector.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+    function limpiarTodoHistorial() {
+        if (confirm("⚠️ Esto eliminará TODOS los grupos. ¿Continuar?")) {
+            appData.grupos = [];
+            resetearModoEdicion();
+            guardarLocalStorage();
+            renderizarSeccion(currentSection);
+        }
+    }
+
+    function renderCheckboxes() {
+        const container = document.getElementById('checkboxesContainer');
+        if (!container) return;
+        const fields = [
+            { id: 'direccion', label: 'Dirección' },
+            { id: 'respuesta', label: 'Respuesta' },
+            { id: 'clasificacion', label: 'Clasificación' },
+            { id: 'pregunta1', label: 'Pregunta 1' }, 
+            { id: 'tema', label: 'Tema' }, 
+            { id: 'pregunta2', label: 'Pregunta 2' }, 
+            { id: 'palabras_clave', label: 'Palabras clave' },
+            { id: 'pregunta3', label: 'Pregunta 3' },
+            { id: 'abreviaciones', label: 'Abreviaciones' } 
+        ];
+        container.innerHTML = fields.map(f => `<label class="checkbox-item"><input type="checkbox" data-field="${f.id}" ${appData.protectedFields[f.id] ? 'checked' : ''}><span>${f.label}</span></label>`).join('');
+        container.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+            chk.addEventListener('change', (e) => { const field = chk.getAttribute('data-field'); appData.protectedFields[field] = chk.checked; guardarLocalStorage(); });
+        });
+    }
+
+    // --------------------- REGISTROS GUARDADOS (con nuevo diseño colapsable) ---------------------
+    let currentSearchText = "";
+    let currentDireccionFilter = "todos";
+    let registrosDynamicContainer = null;
+
+    function aplicarFiltrosYRenderizar() {
+        if (!registrosDynamicContainer) return;
+        const grupos = appData.grupos;
+        if (!grupos.length) {
+            registrosDynamicContainer.innerHTML = `<div class="empty-state">No hay grupos. Crea uno en "Generador".</div>`;
+            return;
+        }
+        const direcciones = [...new Set(grupos.map(g => g.direccion))].sort();
+        let filtered = grupos.filter(grupo => {
+            if (currentDireccionFilter !== "todos" && grupo.direccion !== currentDireccionFilter) return false;
+            if (currentSearchText.trim() === "") return true;
+            const searchLower = currentSearchText.toLowerCase();
+            const preguntasMatch = grupo.preguntas.some(p => p.toLowerCase().includes(searchLower));
+            const respuestaMatch = grupo.respuesta.toLowerCase().includes(searchLower);
+            const direccionMatch = grupo.direccion.toLowerCase().includes(searchLower);
+            const clasificacionMatch = grupo.clasificacion.toLowerCase().includes(searchLower);
+            const temaMatch = grupo.tema.toLowerCase().includes(searchLower);
+            const keywordsMatch = grupo.palabras_clave.some(k => k.toLowerCase().includes(searchLower));
+            return preguntasMatch || respuestaMatch || direccionMatch || clasificacionMatch || temaMatch || keywordsMatch;
+        });
+        let html = `
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label>Buscar (pregunta/respuesta)</label>
+                    <div class="search-wrapper">
+                        <input type="text" id="searchTextInput" placeholder="Escribe y presiona Enter" value="${escapeHtml(currentSearchText)}">
+                        <button class="clear-search" id="clearSearchBtn" title="Limpiar búsqueda"><i class="fas fa-times-circle"></i></button>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label>Filtrar por dirección</label>
+                    <select id="direccionSelect">
+                        <option value="todos" ${currentDireccionFilter === "todos" ? 'selected' : ''}>Todas</option>
+                        ${direcciones.map(d => `<option value="${escapeHtml(d)}" ${currentDireccionFilter === d ? 'selected' : ''}>${escapeHtml(d)}</option>`).join('')}
+                    </select>
+                </div>
+            </div>
+            <div id="resultadosContainer"></div>
+        `;
+        registrosDynamicContainer.innerHTML = html;
+        const resultadosContainer = document.getElementById('resultadosContainer');
+        if (filtered.length === 0) {
+            resultadosContainer.innerHTML = `<div class="empty-state">No hay grupos que coincidan con los filtros.</div>`;
+        } else {
+            let gruposHtml = '';
+            filtered.forEach(grupo => {
+                const idx = appData.grupos.findIndex(g => g === grupo);
+                // Nuevo diseño: muestra badge de clasificación y respuesta, sin dirección (dirección va dentro del detalle)
+                gruposHtml += `
+                    <div class="grupo-item" data-grupo-idx="${idx}">
+                        <div class="grupo-header">
+                            <i class="fas fa-chevron-right toggle-icon" style="cursor:pointer;"></i>
+                            <div>
+                                <button class="btn-icon editar-grupo" data-index="${idx}" title="Editar"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon eliminar-grupo" data-index="${idx}" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        </div>
+                        <div class="clasificacion-badge">${escapeHtml(grupo.clasificacion) || 'Sin clasificación'}</div>
+                        <div class="respuesta-preview">${escapeHtml(grupo.respuesta)}</div>
+                        <div class="grupo-details" style="display: none;">
+                            <div class="meta-chips">
+                                <div class="chip-group"><strong>Dirección</strong><div class="chip-list"><span class="chip-text">${escapeHtml(grupo.direccion) || '—'}</span></div></div>
+                                <div class="chip-group"><strong>Tema</strong><div class="chip-list"><span class="chip-text">${escapeHtml(grupo.tema) || '—'}</span></div></div>
+                                <div class="chip-group"><strong>Palabras clave</strong><div class="chip-list">${grupo.palabras_clave.length ? grupo.palabras_clave.map(k => `<span class="chip">${escapeHtml(k)}</span>`).join('') : '<span class="chip-text">—</span>'}</div></div>
+                                <div class="chip-group"><strong>Abreviaciones</strong><div class="chip-list">${grupo.abreviaciones.length ? grupo.abreviaciones.map(a => `<span class="chip">${escapeHtml(a)}</span>`).join('') : '<span class="chip-text">—</span>'}</div></div>
+                            </div>
+                            <div class="preguntas-list">
+                                <strong><i class="fas fa-list"></i> Preguntas asociadas:</strong>
+                                <div style="margin-top: 0.5rem;">
+                                    <div class="pregunta-item-chat"><span class="pregunta-num">1</span><span class="pregunta-texto">${escapeHtml(grupo.preguntas[0])}</span></div>
+                                    <div class="pregunta-item-chat"><span class="pregunta-num">2</span><span class="pregunta-texto">${escapeHtml(grupo.preguntas[1])}</span></div>
+                                    <div class="pregunta-item-chat"><span class="pregunta-num">3</span><span class="pregunta-texto">${escapeHtml(grupo.preguntas[2])}</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            resultadosContainer.innerHTML = gruposHtml;
+            attachGruposEvents();
+        }
+        const searchInput = document.getElementById('searchTextInput');
+        const clearBtn = document.getElementById('clearSearchBtn');
+        const dirSelect = document.getElementById('direccionSelect');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    currentSearchText = searchInput.value;
+                    aplicarFiltrosYRenderizar();
+                }
+            });
+        }
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                currentSearchText = "";
+                aplicarFiltrosYRenderizar();
+            });
+        }
+        if (dirSelect) {
+            dirSelect.addEventListener('change', (e) => {
+                currentDireccionFilter = e.target.value;
+                aplicarFiltrosYRenderizar();
+            });
+        }
+    }
+
+    function attachGruposEvents() {
+        document.querySelectorAll('.grupo-item').forEach(item => {
+            const toggleIcon = item.querySelector('.toggle-icon');
+            const detailsDiv = item.querySelector('.grupo-details');
+            if (toggleIcon && detailsDiv) {
+                const setState = (expanded) => {
+                    if (expanded) {
+                        detailsDiv.style.display = 'block';
+                        toggleIcon.classList.remove('fa-chevron-right');
+                        toggleIcon.classList.add('fa-chevron-down');
+                    } else {
+                        detailsDiv.style.display = 'none';
+                        toggleIcon.classList.remove('fa-chevron-down');
+                        toggleIcon.classList.add('fa-chevron-right');
+                    }
+                };
+                setState(false);
+                toggleIcon.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isExpanded = detailsDiv.style.display === 'block';
+                    setState(!isExpanded);
+                });
+                // Permitir clic en toda la tarjeta (excepto botones) para expandir/contraer
+                item.addEventListener('click', (e) => {
+                    if (e.target.closest('.editar-grupo') || e.target.closest('.eliminar-grupo') || e.target.closest('.toggle-icon')) return;
+                    const isExpanded = detailsDiv.style.display === 'block';
+                    setState(!isExpanded);
+                });
+            }
+        });
+        document.querySelectorAll('.editar-grupo').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const idx = btn.getAttribute('data-index');
+                if (idx !== null) editarGrupo(parseInt(idx));
+            });
+        });
+        document.querySelectorAll('.eliminar-grupo').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const idx = btn.getAttribute('data-index');
+                if (idx !== null) eliminarGrupo(parseInt(idx));
+            });
+        });
+    }
+
+    // --------------------- GENERADOR ---------------------
+    function renderizarGenerador() {
+        const b = appData.borrador;
+        const editando = appData.editandoIndex !== null;
+        function campoConTache(label, nombre, tipo='text', rows=null) {
+            const value = b[nombre] || '';
+            const inputId = nombre;
+            const isTextarea = tipo === 'textarea';
+            const inputHtml = isTextarea 
+                ? `<textarea id="${inputId}" rows="${rows}">${escapeHtml(value)}</textarea>` 
+                : `<input type="text" id="${inputId}" value="${escapeHtml(value)}">`;
+            return `
+                <div class="input-group">
+                    <label>${label}</label>
+                    <div class="input-wrapper">
+                        ${inputHtml}
+                        <button type="button" class="clear-field-inside" data-field="${nombre}" title="Limpiar campo"><i class="fas fa-times-circle"></i></button>
+                    </div>
+                </div>
+            `;
+        }
+        return `
+            <div class="section-card">
+                <h2 class="section-title"><span><i class="fas fa-edit"></i> Nuevo registro de preguntas</span>${editando ? '<span class="edit-badge"><i class="fas fa-pen"></i> Editando registro</span>' : ''}</h2>
+                <div class="form-grid">
+                    ${campoConTache('Dirección *', 'direccion')}
+                    ${campoConTache('Clasificación', 'clasificacion')}
+                    ${campoConTache('Tema', 'tema')}
+                    ${campoConTache('Palabras clave (coma)', 'palabras_clave')}
+                    <div class="full-width">${campoConTache('Abreviaciones (coma)', 'abreviaciones')}</div>
+                    <div class="full-width">${campoConTache('Respuesta principal *', 'respuesta', 'textarea', 3)}</div>
+                </div>
+                <div class="preguntas-horizontal">
+                    <div class="pregunta-item-form">
+                        <label>Pregunta 1 (aplicada / familiarizada) *</label>
+                        <div class="input-wrapper">
+                            <textarea id="pregunta1" rows="3">${escapeHtml(b.pregunta1)}</textarea>
+                            <button type="button" class="clear-field-inside" data-field="pregunta1" title="Limpiar campo"><i class="fas fa-times-circle"></i></button>
+                        </div>
+                    </div>
+                    <div class="pregunta-item-form">
+                        <label>Pregunta 2 (menos formal, bien planteada) *</label>
+                        <div class="input-wrapper">
+                            <textarea id="pregunta2" rows="3">${escapeHtml(b.pregunta2)}</textarea>
+                            <button type="button" class="clear-field-inside" data-field="pregunta2" title="Limpiar campo"><i class="fas fa-times-circle"></i></button>
+                        </div>
+                    </div>
+                    <div class="pregunta-item-form">
+                        <label>Pregunta 3 (coloquial) *</label>
+                        <div class="input-wrapper">
+                            <textarea id="pregunta3" rows="3">${escapeHtml(b.pregunta3)}</textarea>
+                            <button type="button" class="clear-field-inside" data-field="pregunta3" title="Limpiar campo"><i class="fas fa-times-circle"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-buttons">
+                    <button class="btn-sm" id="guardarGrupoBtn"><i class="fas fa-save"></i> ${editando ? 'Actualizar registro' : 'Guardar registro'}</button>
+                    <button class="btn-sm" id="limpiarFormularioBtn"><i class="fas fa-eraser"></i> Limpiar formulario</button>
+                    ${editando ? '<button class="btn-sm" id="cancelarEdicionBtn"><i class="fas fa-times"></i> Cancelar edición</button>' : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    function renderizarRegistros() {
+        const grupos = appData.grupos;
+        if (!grupos.length) {
+            return `<div class="section-card"><h2 class="section-title"><i class="fas fa-database"></i> Registros guardados</h2><div class="empty-state">No hay grupos. Crea uno en "Generador".</div></div>`;
+        }
+        return `<div class="section-card" id="registrosCard">
+                    <h2 class="section-title"><i class="fas fa-database"></i> Registros guardados (${grupos.length})</h2>
+                    <div id="registrosDynamicContent"></div>
+                </div>`;
+    }
+
+    function renderizarSeccion(seccion) {
+        if (seccion === "generador") {
+            contenidoDinamico.innerHTML = renderizarGenerador();
+            const campos = ['direccion','respuesta','clasificacion','tema','palabras_clave','abreviaciones','pregunta1','pregunta2','pregunta3'];
+            campos.forEach(campo => {
+                const el = document.getElementById(campo);
+                if (el) el.addEventListener('input', (e) => { appData.borrador[campo] = e.target.value; guardarLocalStorage(); });
+            });
+            document.querySelectorAll('.clear-field-inside').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const field = btn.getAttribute('data-field');
+                    if (field) limpiarCampo(field);
+                });
+            });
+            document.getElementById('guardarGrupoBtn').addEventListener('click', guardarGrupo);
+            document.getElementById('limpiarFormularioBtn').addEventListener('click', limpiarFormularioManual);
+            const cancelBtn = document.getElementById('cancelarEdicionBtn');
+            if (cancelBtn) cancelBtn.addEventListener('click', () => { resetearModoEdicion(); limpiarFormularioManual(); renderizarSeccion('generador'); });
+        } else if (seccion === "registros") {
+            contenidoDinamico.innerHTML = renderizarRegistros();
+            registrosDynamicContainer = document.getElementById('registrosDynamicContent');
+            if (registrosDynamicContainer) {
+                aplicarFiltrosYRenderizar();
+            }
+        }
+        document.querySelectorAll('.sidebar-nav a').forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('data-section') === seccion) link.classList.add('active');
+        });
+        renderCheckboxes();
+    }
+
+    function initNavigation() {
+        document.querySelectorAll('.sidebar-nav a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const section = link.getAttribute('data-section');
+                if (section) {
+                    currentSection = section;
+                    renderizarSeccion(section);
+                    if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+                }
+            });
+        });
+    }
+    function initGlobalEvents() {
+        document.getElementById('exportarExcelBtn').addEventListener('click', exportarChatbotExcel);
+        document.getElementById('exportarVectorJsonBtn').addEventListener('click', exportarChatbotJSONVector);
+        document.getElementById('guardarCopiaSeguridadBtn').addEventListener('click', exportarCopiaSeguridad);
+        document.getElementById('limpiarHistorialBtn').addEventListener('click', limpiarTodoHistorial);
+        const importFile = document.getElementById('importarGruposJson');
+        importFile.addEventListener('change', (e) => { if (e.target.files.length) importarCopiaSeguridad(e.target.files[0]); e.target.value = ''; });
+        const mobileBtn = document.getElementById('mobileMenuBtn');
+        const sidebar = document.getElementById('sidebar');
+        mobileBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
+        document.addEventListener('click', (e) => { if (window.innerWidth <= 768 && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !mobileBtn.contains(e.target)) sidebar.classList.remove('open'); });
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
+    }
+
+    cargarLocalStorage();
+    applyTheme(currentTheme);
+    initNavigation();
+    initGlobalEvents();
+    renderizarSeccion('generador');
+    currentSection = 'generador';
+</script>
+</body>
+</html>

@@ -88,30 +88,36 @@
         .full-width { grid-column: span 2; }
         .input-group { display: flex; flex-direction: column; gap: 0.4rem; position: relative; margin-bottom: 0.5rem; }
         .input-group label { font-size: 0.75rem; text-transform: uppercase; color: #ff8c42; font-weight: 600; letter-spacing: 0.5px; font-family: 'Comfortaa', sans-serif; display: flex; align-items: center; gap: 0.4rem; }
-        /* Ajuste vertical del ícono de escudo */
-        .input-group label i.fa-shield-alt {
-            font-size: 0.75rem;
-            margin-top: 0;
-            line-height: 1;
-            vertical-align: middle;
-            display: inline-block;
-        }
+        .input-group label i.fa-shield-alt { font-size: 0.75rem; margin-top: 0; line-height: 1; vertical-align: middle; display: inline-block; }
         .input-wrapper { position: relative; display: flex; align-items: center; }
-        .input-wrapper input, .input-wrapper textarea { width: 100%; padding-right: 2.2rem; font-family: 'Comfortaa', sans-serif; transition: background 0.2s; }
-        .input-wrapper textarea { padding-right: 2.2rem; }
-        .clear-field-inside { 
-            position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: transparent; border: none; cursor: pointer; color: #aaa; font-size: 1rem; padding: 0.2rem; 
-            font-family: 'Comfortaa', sans-serif; transition: color 0.2s;
+        .input-wrapper input, .input-wrapper textarea { width: 100%; padding-right: 4.5rem; font-family: 'Comfortaa', sans-serif; transition: background 0.2s; }
+        .input-wrapper textarea { padding-right: 4.5rem; }
+        .clear-field-inside, .copy-field-inside {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #aaa;
+            font-size: 1rem;
+            padding: 0.2rem;
+            transition: color 0.2s;
+            font-family: 'Comfortaa', sans-serif;
+            z-index: 2;
         }
-        .input-wrapper textarea + .clear-field-inside { top: 0.8rem; transform: none; }
-        .clear-field-inside:hover { color: #ff8c42; }
+        .input-wrapper textarea + .clear-field-inside,
+        .input-wrapper textarea + .copy-field-inside {
+            top: 0.8rem;
+            transform: none;
+        }
+        .clear-field-inside { right: 0.5rem; }
+        .copy-field-inside { right: 2rem; }
+        .clear-field-inside:hover, .copy-field-inside:hover { color: #ff8c42; }
         input, textarea, select { 
             padding: 0.8rem; font-family: 'Comfortaa', sans-serif; font-size: 0.9rem; border-radius: 8px; transition: 0.2s; width: 100%; 
         }
-        /* Fondo para campos obligatorios (más difuminado) */
-        .required-field {
-            background: rgba(255, 140, 66, 0.08) !important;
-        }
+        .required-field { background: rgba(255, 140, 66, 0.08) !important; }
         select {
             padding-right: 2rem;
             appearance: none;
@@ -129,10 +135,7 @@
         body.dark .pregunta-item-form { background: #0e0e10; border-color: #2a2a2e; }
         body.light .pregunta-item-form { background: #f8f9fa; border-color: #dee2e6; }
         .pregunta-item-form label { font-size: 1rem; margin-bottom: 0.5rem; display: block; color: #ff8c42; font-weight: bold; font-family: 'Comfortaa', sans-serif; display: flex; align-items: center; gap: 0.4rem; }
-        .pregunta-item-form label i.fa-shield-alt {
-            font-size: 0.85rem;
-            vertical-align: middle;
-        }
+        .pregunta-item-form label i.fa-shield-alt { font-size: 0.85rem; vertical-align: middle; }
         .btn-sm { 
             padding: 0.5rem 1.2rem; font-size: 0.8rem; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; margin-right: 0.8rem; margin-top: 0.5rem; border: 1px solid; 
             font-family: 'Comfortaa', sans-serif;
@@ -469,13 +472,11 @@
             { id: 'palabras_clave', label: 'Palabras clave' } 
         ];
         container.innerHTML = fields.map(f => `<label class="checkbox-item"><input type="checkbox" data-field="${f.id}" ${appData.protectedFields[f.id] ? 'checked' : ''}><span>${f.label}</span></label>`).join('');
-        // Eventos dinámicos para actualizar el generador automáticamente al marcar/desmarcar
         container.querySelectorAll('input[type="checkbox"]').forEach(chk => {
             chk.addEventListener('change', (e) => {
                 const field = chk.getAttribute('data-field');
                 appData.protectedFields[field] = chk.checked;
                 guardarLocalStorage();
-                // Si estamos en la sección generador, la re-renderizamos para ver el ícono de escudo
                 if (currentSection === "generador") {
                     renderizarSeccion("generador");
                 }
@@ -631,7 +632,6 @@
                     const grupo = appData.grupos[idx];
                     grupo.validado = !grupo.validado;
                     guardarLocalStorage();
-                    // Actualizar badge y el ícono
                     const grupoDiv = btn.closest('.grupo-item');
                     if (grupoDiv) {
                         const badge = grupoDiv.querySelector('.clasificacion-badge');
@@ -696,13 +696,13 @@
         });
     }
 
-    // --------------------- GENERADOR (con ícono de escudo dinámico y fondo difuminado) ---------------------
+    // --------------------- GENERADOR (con botón de copiar en Respuesta principal) ---------------------
     function renderizarGenerador() {
         const b = appData.borrador;
         const editando = appData.editandoIndex !== null;
         const requiredFields = ['direccion', 'respuesta', 'pregunta1', 'pregunta2', 'pregunta3'];
         
-        function campoConTache(label, nombre, tipo='text', rows=null, placeholder='') {
+        function campoConTache(label, nombre, tipo='text', rows=null, placeholder='', showCopy = false) {
             const value = b[nombre] || '';
             const inputId = nombre;
             const isTextarea = tipo === 'textarea';
@@ -712,8 +712,10 @@
             const inputHtml = isTextarea 
                 ? `<textarea id="${inputId}" rows="${rows}" placeholder="${escapeHtml(placeholder)}" ${isRequired ? 'class="required-field"' : ''}>${escapeHtml(value)}</textarea>` 
                 : `<input type="text" id="${inputId}" value="${escapeHtml(value)}" placeholder="${escapeHtml(placeholder)}" ${isRequired ? 'class="required-field"' : ''}>`;
-            return `<div class="input-group">${labelHtml}<div class="input-wrapper">${inputHtml}<button type="button" class="clear-field-inside" data-field="${nombre}" title="Limpiar campo"><i class="fas fa-times-circle"></i></button></div></div>`;
+            const copyButton = showCopy ? `<button type="button" class="copy-field-inside" data-field-copy="${nombre}" title="Copiar contenido"><i class="fas fa-copy"></i></button>` : '';
+            return `<div class="input-group">${labelHtml}<div class="input-wrapper">${inputHtml}<button type="button" class="clear-field-inside" data-field="${nombre}" title="Limpiar campo"><i class="fas fa-times-circle"></i></button>${copyButton}</div></div>`;
         }
+        
         return `
             <div class="section-card">
                 <h2 class="section-title"><span><i class="fas fa-edit"></i> Nuevo registro de preguntas</span>${editando ? '<span class="edit-badge"><i class="fas fa-pen"></i> Editando registro</span>' : ''}</h2>
@@ -723,7 +725,7 @@
                     ${campoConTache('Tema', 'tema', 'text', null, 'Calsificación particular')}
                     ${campoConTache('Abreviaciones', 'abreviaciones', 'text', null, 'Clasificación contextual')}
                     <div class="full-width">${campoConTache('Palabras clave', 'palabras_clave', 'text', null, 'Clasificación específica')}</div>
-                    <div class="full-width">${campoConTache('Respuesta principal', 'respuesta', 'textarea', 3, 'Respuesta principal del chatbot')}</div>
+                    <div class="full-width">${campoConTache('Respuesta principal', 'respuesta', 'textarea', 3, 'Respuesta principal del chatbot', true)}</div>
                 </div>
                 <div class="preguntas-horizontal">
                     <div class="pregunta-item-form">
@@ -772,10 +774,28 @@
             contenidoDinamico.innerHTML = renderizarGenerador();
             const campos = ['direccion','respuesta','clasificacion','tema','palabras_clave','abreviaciones','pregunta1','pregunta2','pregunta3'];
             campos.forEach(campo => { const el = document.getElementById(campo); if (el) el.addEventListener('input', (e) => { appData.borrador[campo] = e.target.value; guardarLocalStorage(); }); });
+            // Eventos para botones de limpiar
             document.querySelectorAll('.clear-field-inside').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const field = btn.getAttribute('data-field');
                     if (field) limpiarCampo(field, true);
+                });
+            });
+            // Eventos para botón de copiar (solo respuesta)
+            document.querySelectorAll('.copy-field-inside').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const field = btn.getAttribute('data-field-copy');
+                    if (field) {
+                        const inputElement = document.getElementById(field);
+                        if (inputElement) {
+                            const textToCopy = inputElement.value;
+                            navigator.clipboard.writeText(textToCopy).then(() => {
+                                const originalIcon = btn.innerHTML;
+                                btn.innerHTML = '<i class="fas fa-check"></i>';
+                                setTimeout(() => { btn.innerHTML = originalIcon; }, 1000);
+                            }).catch(err => console.error('Error al copiar: ', err));
+                        }
+                    }
                 });
             });
             document.getElementById('guardarGrupoBtn').addEventListener('click', guardarGrupo);

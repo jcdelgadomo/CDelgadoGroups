@@ -454,11 +454,15 @@
         const container = document.getElementById('checkboxesContainer');
         if (!container) return;
         const fields = [
-            { id: 'direccion', label: 'Dirección' }, { id: 'respuesta', label: 'Respuesta' },
-            { id: 'clasificacion', label: 'Clasificación' }, { id: 'pregunta1', label: 'Pregunta 1' },
-            { id: 'tema', label: 'Tema' }, { id: 'pregunta2', label: 'Pregunta 2' },
-            { id: 'palabras_clave', label: 'Palabras clave' }, { id: 'pregunta3', label: 'Pregunta 3' },
-            { id: 'abreviaciones', label: 'Abreviaciones' }
+            { id: 'direccion', label: 'Dirección' }, 
+            { id: 'respuesta', label: 'Respuesta' },
+            { id: 'clasificacion', label: 'Clasificación' }, 
+            { id: 'pregunta1', label: 'Pregunta 1' },
+            { id: 'tema', label: 'Tema' }, 
+            { id: 'pregunta2', label: 'Pregunta 2' },
+            { id: 'abreviaciones', label: 'Abreviaciones' },
+            { id: 'pregunta3', label: 'Pregunta 3' },
+            { id: 'palabras_clave', label: 'Palabras clave' } 
         ];
         container.innerHTML = fields.map(f => `<label class="checkbox-item"><input type="checkbox" data-field="${f.id}" ${appData.protectedFields[f.id] ? 'checked' : ''}><span>${f.label}</span></label>`).join('');
         container.querySelectorAll('input[type="checkbox"]').forEach(chk => {

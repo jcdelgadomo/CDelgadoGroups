@@ -5,12 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>ChatBot | Generador de Preguntas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Comfortaa (moderna) -->
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
-        /* ===== ESTILOS (con ajustes para badge verde y botón copiar) ===== */
+        /* ===== ESTILOS CON FUENTE COMFORTAA ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; transition: background 0.3s, color 0.3s; }
+        body { 
+            font-family: 'Comfortaa', sans-serif; 
+            transition: background 0.3s, color 0.3s; 
+        }
         body.dark { background: radial-gradient(circle at 20% 30%, #1a1a1c, #0b0b0e); color: #e0e0e0; }
         body.light { background: #f0f2f5; color: #1a1a2e; }
         .app-layout { display: flex; min-height: 100vh; }
@@ -205,7 +209,7 @@
         }
         input, textarea, select {
             padding: 0.8rem;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Comfortaa', sans-serif;
             font-size: 0.9rem;
             border-radius: 8px;
             transition: 0.2s;
@@ -239,7 +243,7 @@
         body.dark .btn-sm:hover, body.light .btn-sm:hover { background: #ff8c42; color: #0b0b0e; border-color: #ff8c42; }
         .flex-buttons { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 1.5rem; }
         
-        /* Estilos para registros guardados - con badge verde */
+        /* Estilos para registros guardados */
         .grupo-item {
             border-radius: 16px;
             margin-bottom: 1rem;
@@ -500,7 +504,6 @@
                 const parsed = JSON.parse(saved);
                 if (parsed.grupos) {
                     appData.grupos = parsed.grupos;
-                    // Asegurar que cada grupo tenga el campo validado (por si es antiguo)
                     appData.grupos.forEach(g => { if (g.validado === undefined) g.validado = false; });
                 }
                 if (parsed.borrador) appData.borrador = parsed.borrador;
@@ -549,11 +552,10 @@
             palabras_clave: palabrasClave,
             abreviaciones: abreviaciones,
             preguntas: [b.pregunta1.trim(), b.pregunta2.trim(), b.pregunta3.trim()],
-            validado: false  // nuevo registro sin validar
+            validado: false
         };
         if (appData.editandoIndex !== null) {
             if (confirm("¿Actualizar este registro?")) {
-                // Conservar el estado de validado anterior
                 nuevoGrupo.validado = appData.grupos[appData.editandoIndex].validado || false;
                 appData.grupos[appData.editandoIndex] = nuevoGrupo;
                 resetearModoEdicion();
@@ -600,16 +602,11 @@
         }
     }
 
-    // Persistencia en JSON (copia de seguridad)
+    // Persistencia en JSON
     function exportarCopiaSeguridad() {
-        if (appData.grupos.length === 0) {
-            alert("No hay grupos guardados para exportar.");
-            return;
-        }
+        if (appData.grupos.length === 0) { alert("No hay grupos guardados."); return; }
         let nombreBase = prompt("Ingresa un nombre para la copia de seguridad:", "backup");
-        if (!nombreBase) {
-            nombreBase = "backup";
-        }
+        if (!nombreBase) nombreBase = "backup";
         nombreBase = nombreBase.replace(/[^a-z0-9áéíóúñü_-]/gi, '_');
         const nombreArchivo = `ChatBot-backup-${nombreBase}.json`;
         const dataStr = JSON.stringify(appData.grupos, null, 2);
@@ -621,7 +618,6 @@
         a.click();
         URL.revokeObjectURL(url);
     }
-
     function importarCopiaSeguridad(file) {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -629,20 +625,16 @@
                 const imported = JSON.parse(e.target.result);
                 if (Array.isArray(imported) && imported.length && imported[0].direccion !== undefined && imported[0].preguntas) {
                     appData.grupos = imported;
-                    // Asegurar campo validado
                     appData.grupos.forEach(g => { if (g.validado === undefined) g.validado = false; });
                     resetearModoEdicion();
                     guardarLocalStorage();
                     renderizarSeccion(currentSection);
-                    alert("Copia de seguridad cargada correctamente.");
-                } else {
-                    alert("Formato inválido. Se necesita un array de grupos.");
-                }
-            } catch(err) { alert("Error al leer el archivo JSON: " + err.message); }
+                    alert("Copia de seguridad cargada.");
+                } else alert("Formato inválido.");
+            } catch(err) { alert("Error al leer JSON: " + err.message); }
         };
         reader.readAsText(file);
     }
-
     function obtenerArrayParaVector() {
         const vector = [];
         for (const grupo of appData.grupos) {
@@ -656,17 +648,7 @@
         if (!vector.length) { alert("No hay grupos guardados."); return; }
         const headers = ["direccion", "pregunta", "respuesta", "clasificacion", "tema", "palabras_clave", "abreviaciones"];
         const wsData = [headers];
-        for (const item of vector) {
-            wsData.push([
-                item.direccion,
-                item.pregunta,
-                item.respuesta,
-                item.clasificacion,
-                item.tema,
-                item.palabras_clave.join(", "),
-                item.abreviaciones.join(", ")
-            ]);
-        }
+        for (const item of vector) wsData.push([item.direccion, item.pregunta, item.respuesta, item.clasificacion, item.tema, item.palabras_clave.join(", "), item.abreviaciones.join(", ")]);
         const ws = XLSX.utils.aoa_to_sheet(wsData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Preguntas");
@@ -696,15 +678,11 @@
         const container = document.getElementById('checkboxesContainer');
         if (!container) return;
         const fields = [
-            { id: 'direccion', label: 'Dirección' },
-            { id: 'respuesta', label: 'Respuesta' },
-            { id: 'clasificacion', label: 'Clasificación' },
-            { id: 'pregunta1', label: 'Pregunta 1' }, 
-            { id: 'tema', label: 'Tema' }, 
-            { id: 'pregunta2', label: 'Pregunta 2' }, 
-            { id: 'palabras_clave', label: 'Palabras clave' },
-            { id: 'pregunta3', label: 'Pregunta 3' },
-            { id: 'abreviaciones', label: 'Abreviaciones' } 
+            { id: 'direccion', label: 'Dirección' }, { id: 'respuesta', label: 'Respuesta' },
+            { id: 'clasificacion', label: 'Clasificación' }, { id: 'pregunta1', label: 'Pregunta 1' },
+            { id: 'tema', label: 'Tema' }, { id: 'pregunta2', label: 'Pregunta 2' },
+            { id: 'palabras_clave', label: 'Palabras clave' }, { id: 'pregunta3', label: 'Pregunta 3' },
+            { id: 'abreviaciones', label: 'Abreviaciones' }
         ];
         container.innerHTML = fields.map(f => `<label class="checkbox-item"><input type="checkbox" data-field="${f.id}" ${appData.protectedFields[f.id] ? 'checked' : ''}><span>${f.label}</span></label>`).join('');
         container.querySelectorAll('input[type="checkbox"]').forEach(chk => {
@@ -712,9 +690,9 @@
         });
     }
 
-    // --------------------- REGISTROS GUARDADOS con validación y copia ---------------------
+    // --------------------- REGISTROS GUARDADOS (filtro por clasificación) ---------------------
     let currentSearchText = "";
-    let currentDireccionFilter = "todos";
+    let currentClasificacionFilter = "todos";
     let registrosDynamicContainer = null;
 
     function aplicarFiltrosYRenderizar() {
@@ -724,9 +702,9 @@
             registrosDynamicContainer.innerHTML = `<div class="empty-state">No hay grupos. Crea uno en "Generador".</div>`;
             return;
         }
-        const direcciones = [...new Set(grupos.map(g => g.direccion))].sort();
+        const clasificaciones = [...new Set(grupos.map(g => g.clasificacion).filter(c => c && c.trim() !== ""))].sort();
         let filtered = grupos.filter(grupo => {
-            if (currentDireccionFilter !== "todos" && grupo.direccion !== currentDireccionFilter) return false;
+            if (currentClasificacionFilter !== "todos" && grupo.clasificacion !== currentClasificacionFilter) return false;
             if (currentSearchText.trim() === "") return true;
             const searchLower = currentSearchText.toLowerCase();
             const preguntasMatch = grupo.preguntas.some(p => p.toLowerCase().includes(searchLower));
@@ -747,10 +725,10 @@
                     </div>
                 </div>
                 <div class="filter-group">
-                    <label>Filtrar por dirección</label>
-                    <select id="direccionSelect">
-                        <option value="todos" ${currentDireccionFilter === "todos" ? 'selected' : ''}>Todas</option>
-                        ${direcciones.map(d => `<option value="${escapeHtml(d)}" ${currentDireccionFilter === d ? 'selected' : ''}>${escapeHtml(d)}</option>`).join('')}
+                    <label>Filtrar por clasificación</label>
+                    <select id="clasificacionSelect">
+                        <option value="todos" ${currentClasificacionFilter === "todos" ? 'selected' : ''}>Todas</option>
+                        ${clasificaciones.map(c => `<option value="${escapeHtml(c)}" ${currentClasificacionFilter === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('')}
                     </select>
                 </div>
             </div>
@@ -811,34 +789,15 @@
             resultadosContainer.innerHTML = gruposHtml;
             attachGruposEvents();
         }
-        // Reasignar eventos de búsqueda y filtro
         const searchInput = document.getElementById('searchTextInput');
         const clearBtn = document.getElementById('clearSearchBtn');
-        const dirSelect = document.getElementById('direccionSelect');
-        if (searchInput) {
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    currentSearchText = searchInput.value;
-                    aplicarFiltrosYRenderizar();
-                }
-            });
-        }
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => {
-                currentSearchText = "";
-                aplicarFiltrosYRenderizar();
-            });
-        }
-        if (dirSelect) {
-            dirSelect.addEventListener('change', (e) => {
-                currentDireccionFilter = e.target.value;
-                aplicarFiltrosYRenderizar();
-            });
-        }
+        const clasifSelect = document.getElementById('clasificacionSelect');
+        if (searchInput) searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { currentSearchText = searchInput.value; aplicarFiltrosYRenderizar(); } });
+        if (clearBtn) clearBtn.addEventListener('click', () => { currentSearchText = ""; aplicarFiltrosYRenderizar(); });
+        if (clasifSelect) clasifSelect.addEventListener('change', (e) => { currentClasificacionFilter = e.target.value; aplicarFiltrosYRenderizar(); });
     }
 
     function attachGruposEvents() {
-        // Manejo de checkboxes de validación
         document.querySelectorAll('.validar-checkbox').forEach(chk => {
             chk.addEventListener('change', (e) => {
                 e.stopPropagation();
@@ -846,26 +805,20 @@
                 if (!isNaN(idx) && appData.grupos[idx]) {
                     appData.grupos[idx].validado = chk.checked;
                     guardarLocalStorage();
-                    // Actualizar el badge correspondiente sin re-renderizar todo
                     const grupoDiv = chk.closest('.grupo-item');
                     if (grupoDiv) {
                         const badge = grupoDiv.querySelector('.clasificacion-badge');
-                        if (badge) {
-                            if (chk.checked) badge.classList.add('validado');
-                            else badge.classList.remove('validado');
-                        }
+                        if (badge) { if (chk.checked) badge.classList.add('validado'); else badge.classList.remove('validado'); }
                     }
                 }
             });
         });
-        // Eventos de copiar pregunta
         document.querySelectorAll('.copy-pregunta-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const texto = btn.getAttribute('data-pregunta');
                 if (texto) {
                     navigator.clipboard.writeText(texto).then(() => {
-                        // Mostrar pequeño indicador (opcional)
                         const originalIcon = btn.innerHTML;
                         btn.innerHTML = '<i class="fas fa-check"></i>';
                         setTimeout(() => { btn.innerHTML = originalIcon; }, 1000);
@@ -873,28 +826,16 @@
                 }
             });
         });
-        // Expansión/contracción y botones editar/eliminar (igual que antes)
         document.querySelectorAll('.grupo-item').forEach(item => {
             const toggleIcon = item.querySelector('.toggle-icon');
             const detailsDiv = item.querySelector('.grupo-details');
             if (toggleIcon && detailsDiv) {
                 const setState = (expanded) => {
-                    if (expanded) {
-                        detailsDiv.style.display = 'block';
-                        toggleIcon.classList.remove('fa-chevron-right');
-                        toggleIcon.classList.add('fa-chevron-down');
-                    } else {
-                        detailsDiv.style.display = 'none';
-                        toggleIcon.classList.remove('fa-chevron-down');
-                        toggleIcon.classList.add('fa-chevron-right');
-                    }
+                    if (expanded) { detailsDiv.style.display = 'block'; toggleIcon.classList.remove('fa-chevron-right'); toggleIcon.classList.add('fa-chevron-down'); }
+                    else { detailsDiv.style.display = 'none'; toggleIcon.classList.remove('fa-chevron-down'); toggleIcon.classList.add('fa-chevron-right'); }
                 };
                 setState(false);
-                toggleIcon.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const isExpanded = detailsDiv.style.display === 'block';
-                    setState(!isExpanded);
-                });
+                toggleIcon.addEventListener('click', (e) => { e.stopPropagation(); const isExpanded = detailsDiv.style.display === 'block'; setState(!isExpanded); });
                 item.addEventListener('click', (e) => {
                     if (e.target.closest('.editar-grupo') || e.target.closest('.eliminar-grupo') || e.target.closest('.toggle-icon') || e.target.closest('.validar-checkbox') || e.target.closest('.copy-pregunta-btn')) return;
                     const isExpanded = detailsDiv.style.display === 'block';
@@ -903,22 +844,14 @@
             }
         });
         document.querySelectorAll('.editar-grupo').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const idx = btn.getAttribute('data-index');
-                if (idx !== null) editarGrupo(parseInt(idx));
-            });
+            btn.addEventListener('click', (e) => { e.stopPropagation(); const idx = btn.getAttribute('data-index'); if (idx !== null) editarGrupo(parseInt(idx)); });
         });
         document.querySelectorAll('.eliminar-grupo').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const idx = btn.getAttribute('data-index');
-                if (idx !== null) eliminarGrupo(parseInt(idx));
-            });
+            btn.addEventListener('click', (e) => { e.stopPropagation(); const idx = btn.getAttribute('data-index'); if (idx !== null) eliminarGrupo(parseInt(idx)); });
         });
     }
 
-    // --------------------- GENERADOR (sin cambios) ---------------------
+    // --------------------- GENERADOR ---------------------
     function renderizarGenerador() {
         const b = appData.borrador;
         const editando = appData.editandoIndex !== null;
@@ -926,18 +859,8 @@
             const value = b[nombre] || '';
             const inputId = nombre;
             const isTextarea = tipo === 'textarea';
-            const inputHtml = isTextarea 
-                ? `<textarea id="${inputId}" rows="${rows}">${escapeHtml(value)}</textarea>` 
-                : `<input type="text" id="${inputId}" value="${escapeHtml(value)}">`;
-            return `
-                <div class="input-group">
-                    <label>${label}</label>
-                    <div class="input-wrapper">
-                        ${inputHtml}
-                        <button type="button" class="clear-field-inside" data-field="${nombre}" title="Limpiar campo"><i class="fas fa-times-circle"></i></button>
-                    </div>
-                </div>
-            `;
+            const inputHtml = isTextarea ? `<textarea id="${inputId}" rows="${rows}">${escapeHtml(value)}</textarea>` : `<input type="text" id="${inputId}" value="${escapeHtml(value)}">`;
+            return `<div class="input-group"><label>${label}</label><div class="input-wrapper">${inputHtml}<button type="button" class="clear-field-inside" data-field="${nombre}" title="Limpiar campo"><i class="fas fa-times-circle"></i></button></div></div>`;
         }
         return `
             <div class="section-card">
@@ -951,27 +874,9 @@
                     <div class="full-width">${campoConTache('Respuesta principal *', 'respuesta', 'textarea', 3)}</div>
                 </div>
                 <div class="preguntas-horizontal">
-                    <div class="pregunta-item-form">
-                        <label>Pregunta 1 (aplicada / familiarizada) *</label>
-                        <div class="input-wrapper">
-                            <textarea id="pregunta1" rows="3">${escapeHtml(b.pregunta1)}</textarea>
-                            <button type="button" class="clear-field-inside" data-field="pregunta1" title="Limpiar campo"><i class="fas fa-times-circle"></i></button>
-                        </div>
-                    </div>
-                    <div class="pregunta-item-form">
-                        <label>Pregunta 2 (menos formal, bien planteada) *</label>
-                        <div class="input-wrapper">
-                            <textarea id="pregunta2" rows="3">${escapeHtml(b.pregunta2)}</textarea>
-                            <button type="button" class="clear-field-inside" data-field="pregunta2" title="Limpiar campo"><i class="fas fa-times-circle"></i></button>
-                        </div>
-                    </div>
-                    <div class="pregunta-item-form">
-                        <label>Pregunta 3 (coloquial / simple) *</label>
-                        <div class="input-wrapper">
-                            <textarea id="pregunta3" rows="3">${escapeHtml(b.pregunta3)}</textarea>
-                            <button type="button" class="clear-field-inside" data-field="pregunta3" title="Limpiar campo"><i class="fas fa-times-circle"></i></button>
-                        </div>
-                    </div>
+                    <div class="pregunta-item-form"><label>Pregunta 1 (aplicada / familiarizada) *</label><div class="input-wrapper"><textarea id="pregunta1" rows="3">${escapeHtml(b.pregunta1)}</textarea><button type="button" class="clear-field-inside" data-field="pregunta1" title="Limpiar campo"><i class="fas fa-times-circle"></i></button></div></div>
+                    <div class="pregunta-item-form"><label>Pregunta 2 (menos formal, bien planteada) *</label><div class="input-wrapper"><textarea id="pregunta2" rows="3">${escapeHtml(b.pregunta2)}</textarea><button type="button" class="clear-field-inside" data-field="pregunta2" title="Limpiar campo"><i class="fas fa-times-circle"></i></button></div></div>
+                    <div class="pregunta-item-form"><label>Pregunta 3 (coloquial / simple) *</label><div class="input-wrapper"><textarea id="pregunta3" rows="3">${escapeHtml(b.pregunta3)}</textarea><button type="button" class="clear-field-inside" data-field="pregunta3" title="Limpiar campo"><i class="fas fa-times-circle"></i></button></div></div>
                 </div>
                 <div class="flex-buttons">
                     <button class="btn-sm" id="guardarGrupoBtn"><i class="fas fa-save"></i> ${editando ? 'Actualizar registro' : 'Guardar registro'}</button>
@@ -984,29 +889,16 @@
 
     function renderizarRegistros() {
         const grupos = appData.grupos;
-        if (!grupos.length) {
-            return `<div class="section-card"><h2 class="section-title"><i class="fas fa-database"></i> Registros guardados</h2><div class="empty-state">No hay grupos. Crea uno en "Generador".</div></div>`;
-        }
-        return `<div class="section-card" id="registrosCard">
-                    <h2 class="section-title"><i class="fas fa-database"></i> Registros guardados (${grupos.length})</h2>
-                    <div id="registrosDynamicContent"></div>
-                </div>`;
+        if (!grupos.length) return `<div class="section-card"><h2 class="section-title"><i class="fas fa-database"></i> Registros guardados</h2><div class="empty-state">No hay grupos. Crea uno en "Generador".</div></div>`;
+        return `<div class="section-card" id="registrosCard"><h2 class="section-title"><i class="fas fa-database"></i> Registros guardados (${grupos.length})</h2><div id="registrosDynamicContent"></div></div>`;
     }
 
     function renderizarSeccion(seccion) {
         if (seccion === "generador") {
             contenidoDinamico.innerHTML = renderizarGenerador();
             const campos = ['direccion','respuesta','clasificacion','tema','palabras_clave','abreviaciones','pregunta1','pregunta2','pregunta3'];
-            campos.forEach(campo => {
-                const el = document.getElementById(campo);
-                if (el) el.addEventListener('input', (e) => { appData.borrador[campo] = e.target.value; guardarLocalStorage(); });
-            });
-            document.querySelectorAll('.clear-field-inside').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const field = btn.getAttribute('data-field');
-                    if (field) limpiarCampo(field);
-                });
-            });
+            campos.forEach(campo => { const el = document.getElementById(campo); if (el) el.addEventListener('input', (e) => { appData.borrador[campo] = e.target.value; guardarLocalStorage(); }); });
+            document.querySelectorAll('.clear-field-inside').forEach(btn => { btn.addEventListener('click', (e) => { const field = btn.getAttribute('data-field'); if (field) limpiarCampo(field); }); });
             document.getElementById('guardarGrupoBtn').addEventListener('click', guardarGrupo);
             document.getElementById('limpiarFormularioBtn').addEventListener('click', limpiarFormularioManual);
             const cancelBtn = document.getElementById('cancelarEdicionBtn');
@@ -1014,9 +906,7 @@
         } else if (seccion === "registros") {
             contenidoDinamico.innerHTML = renderizarRegistros();
             registrosDynamicContainer = document.getElementById('registrosDynamicContent');
-            if (registrosDynamicContainer) {
-                aplicarFiltrosYRenderizar();
-            }
+            if (registrosDynamicContainer) aplicarFiltrosYRenderizar();
         }
         document.querySelectorAll('.sidebar-nav a').forEach(link => {
             link.classList.remove('active');
@@ -1030,11 +920,7 @@
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 const section = link.getAttribute('data-section');
-                if (section) {
-                    currentSection = section;
-                    renderizarSeccion(section);
-                    if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
-                }
+                if (section) { currentSection = section; renderizarSeccion(section); if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open'); }
             });
         });
     }

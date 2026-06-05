@@ -577,17 +577,17 @@
                                 <strong><i class="fas fa-list"></i> Preguntas asociadas:</strong>
                                 <div style="margin-top: 0.5rem;">
                                     <div class="pregunta-item-chat">
-                                        <span class="pregunta-tipo-badge">Especializada</span>
+                                        <span class="pregunta-tipo-badge">Crítica</span>
                                         <span class="pregunta-texto">${escapeHtml(grupo.preguntas[0])}</span>
                                         <button class="copy-pregunta-btn" data-pregunta="${escapeHtml(grupo.preguntas[0])}" title="Copiar pregunta"><i class="fas fa-copy"></i></button>
                                     </div>
                                     <div class="pregunta-item-chat">
-                                        <span class="pregunta-tipo-badge">Estructurada</span>
+                                        <span class="pregunta-tipo-badge">Inferencial</span>
                                         <span class="pregunta-texto">${escapeHtml(grupo.preguntas[1])}</span>
                                         <button class="copy-pregunta-btn" data-pregunta="${escapeHtml(grupo.preguntas[1])}" title="Copiar pregunta"><i class="fas fa-copy"></i></button>
                                     </div>
                                     <div class="pregunta-item-chat">
-                                        <span class="pregunta-tipo-badge">Simple</span>
+                                        <span class="pregunta-tipo-badge">Literal</span>
                                         <span class="pregunta-texto">${escapeHtml(grupo.preguntas[2])}</span>
                                         <button class="copy-pregunta-btn" data-pregunta="${escapeHtml(grupo.preguntas[2])}" title="Copiar pregunta"><i class="fas fa-copy"></i></button>
                                     </div>
@@ -731,21 +731,21 @@
                     <div class="pregunta-item-form">
                         <label>Pregunta 1 ${appData.protectedFields.pregunta1 ? '<i class="fas fa-shield-alt" style="color: #ff8c42; font-size: 0.85rem;"></i>' : ''}</label>
                         <div class="input-wrapper">
-                            <textarea id="pregunta1" rows="3" placeholder="Especializada" class="${requiredFields.includes('pregunta1') ? 'required-field' : ''}">${escapeHtml(b.pregunta1)}</textarea>
+                            <textarea id="pregunta1" rows="3" placeholder="Nivel Literal" class="${requiredFields.includes('pregunta1') ? 'required-field' : ''}">${escapeHtml(b.pregunta1)}</textarea>
                             <button type="button" class="clear-field-inside" data-field="pregunta1" title="Limpiar campo"><i class="fas fa-times-circle"></i></button>
                         </div>
                     </div>
                     <div class="pregunta-item-form">
                         <label>Pregunta 2 ${appData.protectedFields.pregunta2 ? '<i class="fas fa-shield-alt" style="color: #ff8c42; font-size: 0.85rem;"></i>' : ''}</label>
                         <div class="input-wrapper">
-                            <textarea id="pregunta2" rows="3" placeholder="Estructurada" class="${requiredFields.includes('pregunta2') ? 'required-field' : ''}">${escapeHtml(b.pregunta2)}</textarea>
+                            <textarea id="pregunta2" rows="3" placeholder="Nivel Inferencial" class="${requiredFields.includes('pregunta2') ? 'required-field' : ''}">${escapeHtml(b.pregunta2)}</textarea>
                             <button type="button" class="clear-field-inside" data-field="pregunta2" title="Limpiar campo"><i class="fas fa-times-circle"></i></button>
                         </div>
                     </div>
                     <div class="pregunta-item-form">
                         <label>Pregunta 3 ${appData.protectedFields.pregunta3 ? '<i class="fas fa-shield-alt" style="color: #ff8c42; font-size: 0.85rem;"></i>' : ''}</label>
                         <div class="input-wrapper">
-                            <textarea id="pregunta3" rows="3" placeholder="Simple" class="${requiredFields.includes('pregunta3') ? 'required-field' : ''}">${escapeHtml(b.pregunta3)}</textarea>
+                            <textarea id="pregunta3" rows="3" placeholder="Nivel Crítico" class="${requiredFields.includes('pregunta3') ? 'required-field' : ''}">${escapeHtml(b.pregunta3)}</textarea>
                             <button type="button" class="clear-field-inside" data-field="pregunta3" title="Limpiar campo"><i class="fas fa-times-circle"></i></button>
                         </div>
                     </div>

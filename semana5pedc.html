@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Debates en Educación Comparada</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #F7F3EF;
+  --ink: #1C1410;
+  --ink-light: #5A5048;
+  --accent: #8B2A1A;
+  --accent-light: #C4614E;
+  --accent-pale: #F5E8E5;
+  --line: #DDD5CC;
+  --white: #FFFFFF;
+  --dark: #1E100A;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);font-size:16px;line-height:1.7;}
+
+/* HERO */
+.hero{min-height:100svh;display:grid;grid-template-columns:1fr 380px;gap:4rem;align-items:center;max-width:1060px;margin:0 auto;padding:5rem 2rem;opacity:0;animation:fadeUp .9s ease forwards .1s;}
+.hero-label{font-size:.72rem;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;display:flex;align-items:center;gap:.75rem;}
+.hero-label::after{content:'';display:inline-block;width:40px;height:1px;background:var(--accent);}
+.hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,6vw,5.5rem);font-weight:300;line-height:1.06;margin-bottom:1.75rem;}
+.hero h1 em{font-style:italic;color:var(--accent);}
+.hero-desc{font-size:.97rem;color:var(--ink-light);font-weight:300;border-left:2px solid var(--accent);padding-left:1.25rem;margin-bottom:2.5rem;max-width:520px;}
+.scroll-cue{display:inline-flex;align-items:center;gap:.5rem;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-light);cursor:pointer;}
+.scroll-cue .arrow{display:inline-flex;width:32px;height:32px;border:1px solid var(--line);border-radius:50%;align-items:center;justify-content:center;animation:bounce 2s ease infinite;}
+
+/* HERO DEBATES GRID */
+.hero-debates{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);}
+.hdeb{background:var(--cream);padding:1.5rem;transition:background .25s;cursor:default;}
+.hdeb:hover{background:var(--accent-pale);}
+.hdeb-num{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;color:var(--accent);line-height:1;margin-bottom:.3rem;}
+.hdeb-label{font-size:.78rem;color:var(--ink-light);font-weight:300;line-height:1.4;}
+
+/* NAV DOTS */
+.nav-dots{position:fixed;right:2rem;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:.6rem;z-index:100;}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:var(--line);cursor:pointer;transition:background .3s,transform .3s;}
+.nav-dot.active{background:var(--accent);transform:scale(1.5);}
+
+/* SECTIONS */
+.section{max-width:1060px;margin:0 auto;padding:5rem 2rem;opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease;}
+.section.visible{opacity:1;transform:none;}
+.section-header{display:flex;align-items:baseline;gap:1.5rem;margin-bottom:3rem;padding-bottom:1.5rem;border-bottom:1px solid var(--line);}
+.section-number{font-family:'Cormorant Garamond',serif;font-size:1rem;font-style:italic;color:var(--accent);flex-shrink:0;}
+.section h2{font-family:'Cormorant Garamond',serif;font-size:clamp(1.6rem,4vw,2.8rem);font-weight:300;line-height:1.15;}
+.lead{font-size:1rem;color:var(--ink-light);font-weight:300;margin-bottom:2.5rem;max-width:700px;}
+.divider{width:60px;height:1px;background:var(--accent);margin:2rem 0;}
+
+/* PERSPECTIVAS SPLIT */
+.perspectivas{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:2rem;}
+.persp-col{background:var(--white);padding:2rem 1.75rem;display:flex;flex-direction:column;gap:.75rem;}
+.persp-tag{font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:500;}
+.persp-col h3{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:600;}
+.persp-col p{font-size:.875rem;color:var(--ink-light);font-weight:300;line-height:1.7;}
+
+/* DEBATE BOX */
+.debate-box{background:var(--dark);color:var(--white);padding:2rem 2.5rem;display:grid;grid-template-columns:auto 1fr;gap:1.5rem;align-items:start;margin:1.5rem 0;}
+.debate-label{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-light);font-weight:500;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;}
+.debate-box h4{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:400;margin-bottom:.5rem;}
+.debate-box p{font-size:.87rem;font-weight:300;opacity:.85;line-height:1.75;}
+
+/* ORGS GRID */
+.orgs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-bottom:2rem;}
+.org-card{background:var(--white);border:1px solid var(--line);padding:2rem 1.75rem;position:relative;overflow:hidden;transition:box-shadow .3s,transform .3s;}
+.org-card:hover{box-shadow:0 10px 36px rgba(139,42,26,.1);transform:translateY(-3px);}
+.org-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--accent);}
+.org-sigla{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:300;color:var(--accent);line-height:1;margin-bottom:.5rem;}
+.org-card h3{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;margin-bottom:.6rem;}
+.org-card p{font-size:.82rem;color:var(--ink-light);font-weight:300;line-height:1.65;}
+
+/* TRANSFERENCIA / CONVERGENCIA */
+.tc-split{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:2rem;}
+.tc-col{padding:2.5rem 2rem;}
+.tc-col.trans{background:var(--dark);color:var(--white);}
+.tc-col.conv{background:var(--accent);color:var(--white);}
+.tc-col h3{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:300;margin-bottom:.75rem;}
+.tc-col p{font-size:.875rem;font-weight:300;opacity:.88;line-height:1.7;margin-bottom:1rem;}
+.tc-list{display:flex;flex-direction:column;gap:.4rem;}
+.tc-list li{font-size:.8rem;font-weight:300;opacity:.85;list-style:none;padding-left:1rem;position:relative;}
+.tc-list li::before{content:'—';position:absolute;left:0;opacity:.6;font-size:.72rem;}
+
+/* GLOBALIZACION FLAGS */
+.glob-row{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:2rem;}
+.glob-col{background:var(--white);padding:2rem;display:flex;flex-direction:column;gap:.6rem;}
+.glob-tag{font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;font-weight:500;}
+.glob-tag.imp{color:#2E7D52;}
+.glob-tag.rie{color:var(--accent);}
+.glob-col h3{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;}
+.glob-col p{font-size:.875rem;color:var(--ink-light);font-weight:300;line-height:1.7;}
+
+/* INTERCULTURA PILL */
+.intercultural-banner{background:var(--accent-pale);border:1px solid var(--accent-light);padding:1.25rem 1.75rem;display:flex;align-items:center;gap:1rem;font-size:.9rem;color:var(--accent);}
+.intercultural-banner strong{font-weight:500;}
+
+/* ═══════════ ACTIVIDAD ═══════════ */
+
+/* ACT 1 — POSICIÓN EN EL DEBATE */
+.posicion-wrap{display:flex;flex-direction:column;gap:1.5rem;}
+.pos-scenario{background:var(--white);border:1px solid var(--line);padding:1.75rem;}
+.pos-scenario p{font-size:.95rem;font-weight:500;margin-bottom:1rem;line-height:1.6;}
+.pos-opts{display:flex;flex-direction:column;gap:.5rem;}
+.pos-opt{display:flex;align-items:flex-start;gap:.75rem;padding:.75rem 1rem;border:1px solid var(--line);cursor:pointer;font-size:.875rem;color:var(--ink-light);transition:all .2s;user-select:none;line-height:1.5;}
+.pos-opt:hover{background:var(--accent-pale);border-color:var(--accent-light);}
+.pos-opt.selected-pos{background:var(--accent-pale);border-color:var(--accent);color:var(--ink);}
+.pos-opt.reveal-correct{background:#e8f5e2;border-color:#81c784;}
+.pos-opt.reveal-wrong{background:#fde8e8;border-color:#e57373;}
+.pos-opt input{accent-color:var(--accent);width:15px;height:15px;margin-top:.15rem;flex-shrink:0;}
+.pos-feedback{font-size:.82rem;margin-top:.75rem;padding:.6rem .9rem;display:none;line-height:1.6;}
+.pos-feedback.show{display:block;}
+.pos-feedback.ok{background:#e8f5e2;color:#1b5e3a;border-left:3px solid #4CAF7D;}
+.pos-feedback.fail{background:#fde8e8;color:#7a1a1a;border-left:3px solid #e57373;}
+.act-btn{margin-top:.75rem;padding:.5rem 1.2rem;background:var(--accent);color:#fff;border:none;font-size:.8rem;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .2s;}
+.act-btn:hover{opacity:.83;}
+.act-btn:disabled{opacity:.4;cursor:not-allowed;}
+.score-strip{background:var(--dark);color:var(--white);padding:1.5rem 2rem;text-align:center;margin-top:1rem;display:none;}
+.score-strip.show{display:block;}
+.score-num{font-family:'Cormorant Garamond',serif;font-size:3rem;font-weight:300;color:var(--accent-light);line-height:1;}
+
+/* ACT 2 — MAPA DE TENSIONES */
+.mapa-wrap{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;}
+.mapa-controles{display:flex;flex-direction:column;gap:1.25rem;}
+.mapa-ctrl label{font-size:.82rem;color:var(--ink-light);font-weight:400;display:flex;justify-content:space-between;margin-bottom:.3rem;}
+.mapa-ctrl label span{color:var(--accent);font-weight:500;}
+input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;}
+.mapa-panel{background:var(--dark);color:var(--white);padding:2rem;min-height:260px;display:flex;flex-direction:column;gap:.9rem;}
+.mapa-subtitulo{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-light);opacity:.75;}
+.mapa-titulo{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:300;color:var(--accent-light);}
+.mapa-desc{font-size:.87rem;font-weight:300;opacity:.85;line-height:1.75;}
+.mapa-recom{font-size:.79rem;color:var(--accent-light);border-top:1px solid rgba(255,255,255,.1);padding-top:.75rem;margin-top:.25rem;line-height:1.6;}
+.mapa-bar{width:100%;height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;}
+.mapa-bar-fill{height:100%;background:linear-gradient(to right,#4CAF7D,var(--accent-light),#e57373);transition:width .35s ease;border-radius:3px;}
+
+/* CONCLUSIÓN */
+.conclusion-box{background:var(--accent);color:var(--white);padding:3.5rem;position:relative;overflow:hidden;}
+.conclusion-box::before{content:'§';font-family:'Cormorant Garamond',serif;font-size:18rem;line-height:.8;position:absolute;right:-.5rem;bottom:-2rem;opacity:.06;pointer-events:none;}
+.conclusion-box h2{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:300;margin-bottom:1.25rem;position:relative;}
+.conclusion-box p{font-size:.95rem;font-weight:300;line-height:1.85;opacity:.92;max-width:700px;position:relative;}
+
+footer{text-align:center;padding:3rem 2rem;font-size:.78rem;color:var(--ink-light);letter-spacing:.08em;border-top:1px solid var(--line);font-weight:300;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:none;}}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(5px);}}
+
+/* MOBILE */
+@media(max-width:768px){
+  .section{opacity:1!important;transform:none!important;transition:none!important;padding:3rem 1.25rem;}
+  .nav-dots{display:none;}
+  .hero{grid-template-columns:1fr;min-height:auto;padding:4rem 1.25rem 3rem;gap:2.5rem;}
+  .perspectivas{grid-template-columns:1fr;}
+  .orgs-grid{grid-template-columns:1fr;}
+  .tc-split{grid-template-columns:1fr;}
+  .glob-row{grid-template-columns:1fr;}
+  .mapa-wrap{grid-template-columns:1fr;}
+  .debate-box{grid-template-columns:1fr;gap:.75rem;}
+  .debate-label{writing-mode:horizontal-tb;transform:none;}
+  .conclusion-box{padding:2.5rem 1.5rem;}
+  .section-header{gap:1rem;margin-bottom:2rem;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav-dots">
+  <div class="nav-dot active" data-target="hero"></div>
+  <div class="nav-dot" data-target="teoria"></div>
+  <div class="nav-dot" data-target="globalizacion"></div>
+  <div class="nav-dot" data-target="organismos"></div>
+  <div class="nav-dot" data-target="transferencia"></div>
+  <div class="nav-dot" data-target="actividad"></div>
+  <div class="nav-dot" data-target="conclusion"></div>
+</nav>
+
+<!-- HERO -->
+<section id="hero" class="hero">
+  <div>
+    <p class="hero-label">Pedagogía Contemporánea</p>
+    <h1>Debates actuales<br>en <em>Educación</em><br>Comparada</h1>
+    <p class="hero-desc">Análisis y contraste de sistemas educativos para identificar buenas prácticas y orientar políticas en un mundo cada vez más interconectado.</p>
+    <div class="scroll-cue" onclick="document.getElementById('teoria').scrollIntoView({behavior:'smooth'})">
+      <span class="arrow">↓</span><span>Explorar</span>
+    </div>
+  </div>
+  <div class="hero-debates">
+    <div class="hdeb"><div class="hdeb-num">3.1</div><div class="hdeb-label">Teoría vs. Práctica</div></div>
+    <div class="hdeb"><div class="hdeb-num">3.2</div><div class="hdeb-label">Globalización e Identidad</div></div>
+    <div class="hdeb"><div class="hdeb-num">3.3</div><div class="hdeb-label">Organismos Internacionales</div></div>
+    <div class="hdeb"><div class="hdeb-num">3.4</div><div class="hdeb-label">Transferencia y Convergencia</div></div>
+  </div>
+</section>
+
+<!-- 3.1 TEORÍA VS PRÁCTICA -->
+<section id="teoria" class="section">
+  <div class="section-header">
+    <span class="section-number">3.1</span>
+    <h2>Teoría vs. Práctica</h2>
+  </div>
+  <p class="lead">Uno de los debates más importantes: ¿hasta qué punto los conocimientos teóricos pueden trasladarse eficazmente a las políticas y reformas educativas?</p>
+
+  <div class="perspectivas">
+    <div class="persp-col">
+      <span class="persp-tag">Dimensión teórica</span>
+      <h3>Modelos explicativos</h3>
+      <p>Busca desarrollar marcos conceptuales sobre cómo funcionan los sistemas educativos y cómo interactúan educación, cultura, economía y política. Los investigadores interpretan diferencias y semejanzas entre países.</p>
+    </div>
+    <div class="persp-col">
+      <span class="persp-tag">Dimensión práctica</span>
+      <h3>Políticas y reformas</h3>
+      <p>Se centra en utilizar los resultados comparativos para diseñar políticas educativas, reformas curriculares y estrategias de gestión escolar. Los gobiernos buscan experiencias exitosas adaptables a su contexto.</p>
+    </div>
+  </div>
+
+  <div class="debate-box">
+    <span class="debate-label">Debate central</span>
+    <div>
+      <h4>La brecha entre academia y política</h4>
+      <p>Algunos autores señalan que existe una brecha entre la investigación académica y la toma de decisiones políticas. El desafío actual consiste en lograr un equilibrio entre la rigurosidad científica y la utilidad práctica de los estudios comparativos, orientando la disciplina a resolver problemas concretos sin sacrificar el rigor metodológico.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 3.2 GLOBALIZACIÓN E IDENTIDAD -->
+<section id="globalizacion" class="section">
+  <div class="section-header">
+    <span class="section-number">3.2</span>
+    <h2>Globalización e Identidad</h2>
+  </div>
+  <p class="lead">La globalización transforma los sistemas educativos al facilitar la circulación de conocimientos, modelos pedagógicos y tecnologías — pero no sin riesgos.</p>
+
+  <div class="glob-row">
+    <div class="glob-col">
+      <span class="glob-tag imp">Impacto positivo</span>
+      <h3>Interconexión educativa</h3>
+      <p>La creciente interdependencia favorece la adopción de estándares internacionales de calidad, la expansión de tecnologías digitales, la cooperación educativa y la comparación constante a través de evaluaciones internacionales.</p>
+    </div>
+    <div class="glob-col">
+      <span class="glob-tag rie">Riesgo latente</span>
+      <h3>Homogeneización cultural</h3>
+      <p>La globalización puede generar procesos que reducen la diversidad educativa y debilitan identidades nacionales, regionales o locales. La adopción de modelos extranjeros sin contextualización provoca tensiones entre demandas globales y necesidades locales.</p>
+    </div>
+  </div>
+
+  <div class="intercultural-banner">
+    <span style="font-size:1.3rem;">⚖</span>
+    <span><strong>Propuesta:</strong> Una educación intercultural que combine competencias globales con el respeto por la diversidad cultural y los valores de cada contexto sociocultural.</span>
+  </div>
+
+  <div class="debate-box">
+    <span class="debate-label">Debate central</span>
+    <div>
+      <h4>Integración global vs. identidad local</h4>
+      <p>El principal desafío consiste en preparar a los estudiantes para participar en un mundo globalizado sin que los sistemas educativos pierdan los valores, tradiciones y características que definen su contexto. La tensión entre lo universal y lo particular está en el núcleo de la Educación Comparada contemporánea.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 3.3 ORGANISMOS INTERNACIONALES -->
+<section id="organismos" class="section">
+  <div class="section-header">
+    <span class="section-number">3.3</span>
+    <h2>Instituciones internacionales</h2>
+  </div>
+  <p class="lead">UNESCO, OCDE y la Unión Europea desempeñan un papel creciente en la orientación de las políticas educativas a nivel mundial.</p>
+
+  <div class="orgs-grid">
+    <div class="org-card">
+      <div class="org-sigla">UNESCO</div>
+      <h3>Organización de las Naciones Unidas para la Educación</h3>
+      <p>Promueve el derecho universal a la educación, la inclusión, la equidad y el aprendizaje a lo largo de la vida. Sus informes constituyen referentes clave para los sistemas educativos nacionales.</p>
+    </div>
+    <div class="org-card">
+      <div class="org-sigla">OCDE</div>
+      <h3>Organización para la Cooperación y el Desarrollo Económico</h3>
+      <p>Una de las instituciones más influyentes gracias al Programa PISA. Sus análisis comparan el rendimiento educativo de numerosos países y orientan reformas educativas en todo el mundo.</p>
+    </div>
+    <div class="org-card">
+      <div class="org-sigla">UE</div>
+      <h3>Unión Europea</h3>
+      <p>Impulsa políticas de cooperación educativa entre sus miembros, promoviendo la movilidad académica, la innovación pedagógica y la armonización de ciertos objetivos educativos.</p>
+    </div>
+  </div>
+
+  <div class="debate-box">
+    <span class="debate-label">Debate central</span>
+    <div>
+      <h4>Cooperación internacional vs. soberanía educativa</h4>
+      <p>Mientras algunos especialistas consideran que estos organismos mejoran la calidad y la cooperación educativa, otros advierten que pueden favorecer la estandarización excesiva y limitar la autonomía de los países. La discusión gira en torno al equilibrio entre la agenda global y la soberanía nacional en materia educativa.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 3.4 TRANSFERENCIA Y CONVERGENCIA -->
+<section id="transferencia" class="section">
+  <div class="section-header">
+    <span class="section-number">3.4</span>
+    <h2>Transferencia y Convergencia<br>educativa</h2>
+  </div>
+  <p class="lead">Dos fenómenos estrechamente relacionados con la circulación internacional de políticas y modelos educativos.</p>
+
+  <div class="tc-split">
+    <div class="tc-col trans">
+      <h3>Transferencia educativa</h3>
+      <p>Adopción o adaptación de ideas, programas, políticas o prácticas educativas desarrolladas en otros contextos. Los gobiernos observan experiencias exitosas para implementar reformas propias.</p>
+      <ul class="tc-list">
+        <li>Transferencia de políticas educativas</li>
+        <li>Adaptación de currículos</li>
+        <li>Incorporación de métodos pedagógicos</li>
+        <li>Implementación de evaluaciones externas</li>
+        <li>Reformas en formación docente</li>
+      </ul>
+    </div>
+    <div class="tc-col conv">
+      <h3>Convergencia educativa</h3>
+      <p>Tendencia de distintos sistemas a volverse más similares por influencia de procesos globales, organismos internacionales y desafíos compartidos.</p>
+      <ul class="tc-list">
+        <li>Globalización económica y cultural</li>
+        <li>Evaluaciones internacionales</li>
+        <li>Movilidad académica y profesional</li>
+        <li>Influencia de organismos internacionales</li>
+        <li>Intercambio de buenas prácticas</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="debate-box">
+    <span class="debate-label">Debate central</span>
+    <div>
+      <h4>¿Mejora o pérdida de diversidad?</h4>
+      <p>Los defensores argumentan que la convergencia facilita la cooperación internacional, la movilidad estudiantil y la mejora de estándares. Los críticos advierten que copiar modelos externos sin considerar particularidades históricas, sociales y culturales puede resultar ineficaz. La Educación Comparada enfatiza adaptar experiencias al contexto local, no reproducirlas.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ACTIVIDAD -->
+<section id="actividad" class="section">
+  <div class="section-header">
+    <span class="section-number">04</span>
+    <h2>Actividades interactivas</h2>
+  </div>
+  <div style="background:var(--accent-pale);border:1px solid var(--accent-light);padding:1rem 1.5rem;margin-bottom:2.5rem;font-size:.88rem;color:var(--accent);display:flex;gap:.75rem;">
+    <span>🎯</span><span>Dos actividades para trabajar en clase. Reflexiona y compara con tu grupo.</span>
+  </div>
+
+  <!-- ACT 1 — POSICIÓN EN EL DEBATE -->
+  <div style="margin-bottom:3rem;">
+    <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:400;margin-bottom:1.5rem;padding-bottom:.75rem;border-bottom:1px solid var(--line);">Actividad 1 — Toma posición en el debate</h3>
+    <div class="posicion-wrap" id="posWrap">
+
+      <div class="pos-scenario" data-correct="b">
+        <p>México adopta el modelo finlandés de educación sin modificaciones: sin exámenes estandarizados, semanas laborales cortas para docentes y alta autonomía escolar. Dos años después los resultados son irregulares. Desde la perspectiva de la Educación Comparada, ¿cuál es la explicación más adecuada?</p>
+        <div class="pos-opts">
+          <label class="pos-opt"><input type="radio" name="p1" value="a"> El modelo finlandés es simplemente superior y debería aplicarse en todo el mundo sin cambios.</label>
+          <label class="pos-opt"><input type="radio" name="p1" value="b"> La transferencia sin contextualización ignora diferencias históricas, sociales y culturales del contexto receptor.</label>
+          <label class="pos-opt"><input type="radio" name="p1" value="c"> Los docentes mexicanos no estuvieron dispuestos a colaborar con el cambio.</label>
+          <label class="pos-opt"><input type="radio" name="p1" value="d"> La OCDE debería haber intervenido para garantizar una aplicación correcta.</label>
+        </div>
+        <div class="pos-feedback" id="pf1"></div>
+        <button class="act-btn" onclick="checkPos(1,'b','pf1')">Verificar</button>
+      </div>
+
+      <div class="pos-scenario" data-correct="c">
+        <p>Un investigador publica un modelo teórico que explica con precisión cómo las variables culturales afectan el rendimiento escolar. Sin embargo, ningún ministerio de educación lo adopta en sus políticas. ¿Qué debate de la Educación Comparada ilustra esta situación?</p>
+        <div class="pos-opts">
+          <label class="pos-opt"><input type="radio" name="p2" value="a"> La convergencia educativa y sus límites.</label>
+          <label class="pos-opt"><input type="radio" name="p2" value="b"> La influencia excesiva de los organismos internacionales.</label>
+          <label class="pos-opt"><input type="radio" name="p2" value="c"> La brecha entre teoría académica y aplicación práctica en las políticas educativas.</label>
+          <label class="pos-opt"><input type="radio" name="p2" value="d"> La globalización como amenaza a la identidad cultural.</label>
+        </div>
+        <div class="pos-feedback" id="pf2"></div>
+        <button class="act-btn" onclick="checkPos(2,'c','pf2')">Verificar</button>
+      </div>
+
+      <div class="pos-scenario" data-correct="a">
+        <p>Varios países latinoamericanos ajustan sus currículos para mejorar su posición en PISA, priorizando matemáticas y lectura sobre artes, educación cívica e historia local. ¿Qué riesgo de la Educación Comparada refleja esto?</p>
+        <div class="pos-opts">
+          <label class="pos-opt"><input type="radio" name="p3" value="a"> La estandarización impulsada por organismos internacionales puede reducir la diversidad curricular y la identidad cultural.</label>
+          <label class="pos-opt"><input type="radio" name="p3" value="b"> Los países deben eliminar las artes del currículo para competir globalmente.</label>
+          <label class="pos-opt"><input type="radio" name="p3" value="c"> PISA es una herramienta suficiente para definir una buena educación.</label>
+          <label class="pos-opt"><input type="radio" name="p3" value="d"> La convergencia educativa siempre produce mejores resultados a largo plazo.</label>
+        </div>
+        <div class="pos-feedback" id="pf3"></div>
+        <button class="act-btn" onclick="checkPos(3,'a','pf3')">Verificar</button>
+      </div>
+
+    </div>
+    <div class="score-strip" id="posScore">
+      <div class="score-num" id="posScoreNum">—</div>
+      <p id="posScoreMsg" style="font-size:.88rem;opacity:.8;margin-top:.4rem;"></p>
+    </div>
+    <button class="act-btn" style="margin-top:1rem;" onclick="showPosScore()">Ver resultado final</button>
+  </div>
+
+  <!-- ACT 2 — MAPA DE TENSIONES -->
+  <div>
+    <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:400;margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--line);">Actividad 2 — Mapa de tensiones educativas</h3>
+    <p style="font-size:.88rem;color:var(--ink-light);margin-bottom:1.5rem;">Ajusta los tres factores para simular el nivel de tensión en un sistema educativo y ver qué tipo de debate emerge.</p>
+
+    <div class="mapa-wrap">
+      <div class="mapa-controles">
+        <div class="mapa-ctrl">
+          <label>Presión de organismos internacionales <span id="lbl-org">50%</span></label>
+          <input type="range" min="0" max="100" value="50" id="sl-org" oninput="updateMapa()">
+        </div>
+        <div class="mapa-ctrl">
+          <label>Diversidad cultural interna <span id="lbl-div">50%</span></label>
+          <input type="range" min="0" max="100" value="50" id="sl-div" oninput="updateMapa()">
+        </div>
+        <div class="mapa-ctrl">
+          <label>Capacidad de adaptación local <span id="lbl-ada">50%</span></label>
+          <input type="range" min="0" max="100" value="50" id="sl-ada" oninput="updateMapa()">
+        </div>
+      </div>
+      <div class="mapa-panel">
+        <div class="mapa-subtitulo" id="mapaSubt">—</div>
+        <div class="mapa-titulo" id="mapaTit">Ajusta los factores</div>
+        <div class="mapa-bar"><div class="mapa-bar-fill" id="mapaFill" style="width:50%;"></div></div>
+        <p class="mapa-desc" id="mapaDesc">Mueve los controles para explorar diferentes escenarios de tensión entre lo global y lo local en la Educación Comparada.</p>
+        <p class="mapa-recom" id="mapaRecom"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONCLUSIÓN -->
+<section id="conclusion" class="section">
+  <div class="section-header">
+    <span class="section-number">05</span>
+    <h2>Conclusión</h2>
+  </div>
+  <div class="conclusion-box">
+    <h2>Un campo en permanente tensión</h2>
+    <p>Los debates actuales en la Educación Comparada reflejan los desafíos de los sistemas educativos en un mundo interconectado. La tensión entre teoría y práctica, la relación entre globalización e identidad, la influencia de organismos internacionales y los procesos de transferencia y convergencia constituyen ejes centrales de la disciplina. El análisis comparativo identifica tendencias globales pero subraya la necesidad de respetar las particularidades culturales de cada contexto, favoreciendo reformas más pertinentes, inclusivas y sostenibles.</p>
+  </div>
+</section>
+
+<footer>Debates en Educación Comparada &nbsp;·&nbsp; Pedagogía Contemporánea &nbsp;·&nbsp; César Delgado</footer>
+
+<script>
+// SCROLL OBSERVER
+const mq = window.matchMedia('(min-width:769px)');
+const secs = document.querySelectorAll('.section');
+if(mq.matches){
+  const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('visible');}),{threshold:.08});
+  secs.forEach(s=>io.observe(s));
+}else{secs.forEach(s=>s.classList.add('visible'));}
+
+const dots=document.querySelectorAll('.nav-dot');
+const tgts=[...dots].map(d=>document.getElementById(d.dataset.target));
+if(mq.matches){
+  const dObs=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){dots.forEach(d=>d.classList.remove('active'));const i=tgts.indexOf(x.target);if(i!==-1)dots[i].classList.add('active');}}),{threshold:.3});
+  tgts.forEach(t=>t&&dObs.observe(t));
+  dots.forEach((d,i)=>d.addEventListener('click',()=>tgts[i]?.scrollIntoView({behavior:'smooth'})));
+}
+
+// ACT 1
+const posFb={
+  1:{b:'Correcto. La transferencia sin contextualización es uno de los riesgos más documentados en Educación Comparada: los modelos exitosos son producto de condiciones históricas y culturales específicas que no se exportan automáticamente.'},
+  2:{c:'Correcto. Esta es la brecha clásica entre teoría y práctica: investigaciones rigurosas que no logran trasladarse a decisiones políticas concretas, uno de los debates centrales de la disciplina.'},
+  3:{a:'Correcto. La presión por mejorar en evaluaciones como PISA puede llevar a una convergencia curricular que homogeneiza los sistemas y margina contenidos culturalmente relevantes, reduciendo la diversidad educativa.'}
+};
+const posWrong=['Recuerda que la transferencia educativa requiere adaptación al contexto receptor.','Piensa en cuál de los cuatro debates describe mejor la relación entre academia y política.','Reflexiona sobre qué riesgo describe específicamente la influencia de los rankings internacionales.'];
+let posScores={};
+
+function checkPos(n,correct,fbId){
+  const sel=document.querySelector(`input[name="p${n}"]:checked`);
+  const fb=document.getElementById(fbId);
+  if(!sel){fb.textContent='Selecciona una opción primero.';fb.className='pos-feedback show fail';return;}
+  document.querySelectorAll(`input[name="p${n}"]`).forEach(o=>{
+    const lbl=o.parentElement;lbl.style.pointerEvents='none';
+    if(o.value===correct)lbl.classList.add('reveal-correct');
+    else if(o.checked)lbl.classList.add('reveal-wrong');
+  });
+  if(sel.value===correct){fb.textContent='✓ '+posFb[n][correct];fb.className='pos-feedback show ok';posScores[n]=1;}
+  else{fb.textContent='✗ '+posWrong[n-1];fb.className='pos-feedback show fail';posScores[n]=0;}
+  document.querySelectorAll(`#posWrap .pos-scenario`)[n-1].querySelector('.act-btn').disabled=true;
+}
+
+function showPosScore(){
+  const tot=Object.values(posScores).reduce((a,b)=>a+b,0);
+  const el=document.getElementById('posScore');
+  document.getElementById('posScoreNum').textContent=tot+'/3';
+  const msgs=['Repasa los debates del tema con detenimiento.','Buen análisis, revisa el concepto que falló.','¡Excelente! Comprendes los debates centrales de la disciplina.'];
+  document.getElementById('posScoreMsg').textContent=msgs[tot]||'';
+  el.classList.add('show');
+}
+
+// ACT 2 — MAPA DE TENSIONES
+const mapStages=[
+  {min:0,max:20,subt:'Escenario de baja tensión',tit:'Sistema autónomo y estable',desc:'La presión externa es baja y el sistema tiene buena capacidad de adaptación. Los debates entre lo global y lo local no generan conflicto significativo.',recom:'Oportunidad ideal para desarrollar políticas educativas basadas en la identidad y necesidades propias.'},
+  {min:21,max:40,subt:'Tensión moderada — Debate 3.1',tit:'Brecha teoría–práctica emergente',desc:'La influencia internacional comienza a crecer pero la capacidad local aún puede canalizar los cambios. El riesgo es que la investigación no llegue a las políticas concretas.',recom:'Recomendación: fortalecer los canales entre academia y tomadores de decisiones.'},
+  {min:41,max:60,subt:'Tensión media — Debate 3.4',tit:'Transferencia sin contextualización',desc:'Se adoptan modelos externos con poca adaptación local. La diversidad cultural interna no está siendo considerada suficientemente en las reformas educativas.',recom:'Recomendación: revisar qué elementos del modelo externo son transferibles y cuáles requieren adaptación profunda.'},
+  {min:61,max:80,subt:'Tensión alta — Debate 3.2 y 3.3',tit:'Globalización vs. Identidad cultural',desc:'Alta presión de organismos internacionales con una diversidad cultural que no está siendo respetada. El sistema corre riesgo de homogeneización.',recom:'Recomendación: negociar con los organismos internacionales estándares que respeten la diversidad local.'},
+  {min:81,max:100,subt:'Tensión crítica — Todos los debates',tit:'Crisis de soberanía educativa',desc:'Máxima presión externa, alta diversidad cultural interna y baja capacidad de adaptación. El sistema enfrenta una crisis de identidad que puede desencadenar todos los debates de la Educación Comparada simultáneamente.',recom:'Situación que requiere diálogo urgente entre actores locales e internacionales para encontrar un equilibrio sostenible.'},
+];
+
+function updateMapa(){
+  const org=+document.getElementById('sl-org').value;
+  const div=+document.getElementById('sl-div').value;
+  const ada=+document.getElementById('sl-ada').value;
+  document.getElementById('lbl-org').textContent=org+'%';
+  document.getElementById('lbl-div').textContent=div+'%';
+  document.getElementById('lbl-ada').textContent=ada+'%';
+  const score=Math.min(100,Math.max(0,Math.round((org*.45)+(div*.3)-(ada*.35)+20)));
+  document.getElementById('mapaFill').style.width=score+'%';
+  const st=mapStages.find(s=>score>=s.min&&score<=s.max)||mapStages[4];
+  document.getElementById('mapaSubt').textContent=st.subt;
+  document.getElementById('mapaTit').textContent=st.tit;
+  document.getElementById('mapaDesc').textContent=st.desc;
+  document.getElementById('mapaRecom').textContent=st.recom;
+}
+updateMapa();
+</script>
+</body>
+</html>

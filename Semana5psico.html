@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atracción, Repulsión y Conflicto</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #F5F2F9;
+  --ink: #1A1520;
+  --ink-light: #524E5C;
+  --accent: #6B4D8F;
+  --accent-light: #9B7EC8;
+  --accent-pale: #EDE6F7;
+  --line: #D5CCE5;
+  --white: #FFFFFF;
+  --dark: #1E1428;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);font-size:16px;line-height:1.7;}
+
+/* HERO */
+.hero{min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:6rem 2rem 4rem;max-width:960px;margin:0 auto;opacity:0;animation:fadeUp .9s ease forwards .1s;}
+.hero-label{font-size:.72rem;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:2rem;display:flex;align-items:center;gap:.75rem;}
+.hero-label::after{content:'';display:inline-block;width:40px;height:1px;background:var(--accent);}
+.hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(3rem,8vw,6.5rem);font-weight:300;line-height:1.05;margin-bottom:2rem;}
+.hero h1 em{font-style:italic;color:var(--accent);}
+.hero-desc{font-size:1.05rem;color:var(--ink-light);font-weight:300;max-width:560px;border-left:2px solid var(--accent);padding-left:1.25rem;margin-bottom:3rem;}
+.scroll-cue{display:inline-flex;align-items:center;gap:.5rem;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-light);cursor:pointer;}
+.scroll-cue .arrow{display:inline-flex;width:32px;height:32px;border:1px solid var(--line);border-radius:50%;align-items:center;justify-content:center;animation:bounce 2s ease infinite;}
+
+/* NAV DOTS */
+.nav-dots{position:fixed;right:2rem;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:.6rem;z-index:100;}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:var(--line);cursor:pointer;transition:background .3s,transform .3s;}
+.nav-dot.active{background:var(--accent);transform:scale(1.5);}
+
+/* SECTIONS */
+.section{max-width:960px;margin:0 auto;padding:5rem 2rem;opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease;}
+.section.visible{opacity:1;transform:none;}
+.section-header{display:flex;align-items:baseline;gap:1.5rem;margin-bottom:3rem;padding-bottom:1.5rem;border-bottom:1px solid var(--line);}
+.section-number{font-family:'Cormorant Garamond',serif;font-size:1rem;font-style:italic;color:var(--accent);flex-shrink:0;}
+.section h2{font-family:'Cormorant Garamond',serif;font-size:clamp(1.6rem,4vw,2.8rem);font-weight:300;line-height:1.15;}
+.lead{font-size:1.05rem;color:var(--ink-light);font-weight:300;margin-bottom:2.5rem;max-width:680px;}
+.divider{width:60px;height:1px;background:var(--accent);margin:2rem 0;}
+
+/* TRIO CARDS (proximidad/alejamiento/familiaridad) */
+.trio-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:2rem;}
+.trio-card{background:var(--white);padding:2rem 1.75rem;display:flex;flex-direction:column;gap:.75rem;transition:background .25s;}
+.trio-card:hover{background:var(--accent-pale);}
+.trio-tag{font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:500;}
+.trio-card h3{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;}
+.trio-card p{font-size:.875rem;color:var(--ink-light);font-weight:300;}
+.trio-example{font-size:.8rem;color:var(--accent-light);font-style:italic;border-top:1px solid var(--line);padding-top:.75rem;margin-top:auto;}
+
+/* COMPETENCIA */
+.comp-split{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:2rem;}
+.comp-box{padding:2.5rem 2rem;}
+.comp-box.pos{background:var(--dark);color:var(--white);}
+.comp-box.neg{background:var(--accent);color:var(--white);}
+.comp-box h3{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:300;margin-bottom:.75rem;}
+.comp-box p{font-size:.88rem;font-weight:300;opacity:.88;line-height:1.7;}
+.tipos-row{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);}
+.tipo-item{background:var(--cream);padding:1.25rem 1.5rem;font-size:.88rem;color:var(--ink-light);display:flex;flex-direction:column;gap:.3rem;transition:background .25s;}
+.tipo-item:hover{background:var(--accent-pale);}
+.tipo-item strong{color:var(--ink);font-size:.82rem;text-transform:uppercase;letter-spacing:.06em;}
+
+/* CONFLICTO ETAPAS */
+.etapas-timeline{position:relative;padding-left:2.5rem;margin:2rem 0;}
+.etapas-timeline::before{content:'';position:absolute;left:0;top:.6rem;bottom:.6rem;width:1px;background:linear-gradient(to bottom,var(--accent),transparent);}
+.etapa-item{position:relative;margin-bottom:2rem;}
+.etapa-item::before{content:'';position:absolute;left:-2.5rem;top:.55rem;width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--cream),0 0 0 4px var(--accent-light);}
+.etapa-item h4{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;margin-bottom:.3rem;}
+.etapa-item p{font-size:.875rem;color:var(--ink-light);font-weight:300;}
+
+/* EJEMPLO BOX */
+.ejemplo-box{background:var(--dark);color:var(--white);padding:2rem 2.5rem;margin-top:2rem;display:grid;grid-template-columns:auto 1fr;gap:1.5rem;align-items:start;}
+.ejemplo-label{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-light);font-weight:500;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;}
+.ejemplo-box h4{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:400;margin-bottom:.5rem;}
+.ejemplo-box p{font-size:.87rem;font-weight:300;opacity:.85;line-height:1.75;}
+
+/* ═══════════════════════════════════════
+   ACTIVIDADES
+═══════════════════════════════════════ */
+.actividades-intro{background:var(--accent-pale);border:1px solid var(--accent-light);padding:1rem 1.5rem;margin-bottom:2rem;font-size:.88rem;color:var(--accent);display:flex;gap:.75rem;align-items:center;}
+
+/* ACT 1 — Cuestionario */
+.quiz-wrap{display:flex;flex-direction:column;gap:1.5rem;}
+.quiz-q{background:var(--white);border:1px solid var(--line);padding:1.75rem;}
+.quiz-q p{font-size:.95rem;font-weight:500;margin-bottom:1rem;}
+.quiz-opts{display:flex;flex-direction:column;gap:.5rem;}
+.quiz-opt{display:flex;align-items:center;gap:.75rem;padding:.6rem 1rem;border:1px solid var(--line);cursor:pointer;font-size:.88rem;color:var(--ink-light);transition:all .2s;user-select:none;}
+.quiz-opt:hover{background:var(--accent-pale);border-color:var(--accent-light);}
+.quiz-opt.correct{background:#d4f5e2;border-color:#4CAF7D;color:#1b5e3a;}
+.quiz-opt.wrong{background:#fde8e8;border-color:#e57373;color:#7a1a1a;}
+.quiz-opt.show-correct{background:#e8f5e2;border-color:#81c784;}
+.quiz-opt input{accent-color:var(--accent);width:16px;height:16px;}
+.quiz-feedback{font-size:.82rem;margin-top:.75rem;padding:.5rem .75rem;display:none;}
+.quiz-feedback.show{display:block;}
+.quiz-feedback.ok{background:#d4f5e2;color:#1b5e3a;border-left:3px solid #4CAF7D;}
+.quiz-feedback.fail{background:#fde8e8;color:#7a1a1a;border-left:3px solid #e57373;}
+.quiz-btn{margin-top:.75rem;padding:.55rem 1.25rem;background:var(--accent);color:#fff;border:none;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .2s;}
+.quiz-btn:hover{opacity:.85;}
+.quiz-result{background:var(--dark);color:var(--white);padding:1.75rem;text-align:center;margin-top:1rem;display:none;}
+.quiz-result.show{display:block;}
+.quiz-result .score{font-family:'Cormorant Garamond',serif;font-size:3.5rem;font-weight:300;color:var(--accent-light);line-height:1;}
+.quiz-result p{font-size:.88rem;opacity:.8;margin-top:.5rem;}
+
+/* ACT 2 — Clasificador drag & drop */
+.clasificador-intro{font-size:.88rem;color:var(--ink-light);margin-bottom:1.5rem;}
+.drag-area{display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:2rem;min-height:60px;padding:.75rem;border:1px dashed var(--line);background:var(--white);}
+.drag-chip{background:var(--accent);color:#fff;padding:.4rem 1rem;font-size:.82rem;border-radius:2px;cursor:grab;user-select:none;transition:transform .15s,box-shadow .15s;}
+.drag-chip:active{cursor:grabbing;transform:scale(1.04);box-shadow:0 4px 16px rgba(107,77,143,.3);}
+.drag-chip.dragging{opacity:.5;}
+.drop-zones{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.25rem;}
+.drop-zone{min-height:120px;border:1px solid var(--line);background:var(--white);padding:1rem;display:flex;flex-direction:column;gap:.5rem;}
+.drop-zone.drag-over{background:var(--accent-pale);border-color:var(--accent);}
+.drop-zone-label{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:500;margin-bottom:.5rem;padding-bottom:.5rem;border-bottom:1px solid var(--line);}
+.drop-chip{background:var(--accent-pale);color:var(--accent);padding:.35rem .85rem;font-size:.82rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;}
+.drop-chip .remove-chip{cursor:pointer;font-size:1rem;opacity:.6;background:none;border:none;color:inherit;line-height:1;}
+.drop-chip.chip-correct{background:#d4f5e2;color:#1b5e3a;}
+.drop-chip.chip-wrong{background:#fde8e8;color:#7a1a1a;}
+.clasificador-actions{display:flex;gap:.75rem;flex-wrap:wrap;}
+.btn-check{padding:.55rem 1.25rem;background:var(--accent);color:#fff;border:none;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .2s;}
+.btn-check:hover{opacity:.85;}
+.btn-reset{padding:.55rem 1.25rem;background:transparent;color:var(--accent);border:1px solid var(--accent);font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;}
+.btn-reset:hover{background:var(--accent-pale);}
+.clasificador-result{font-size:.88rem;margin-top:1rem;padding:.75rem 1rem;display:none;}
+.clasificador-result.show{display:block;}
+.clasificador-result.ok{background:#d4f5e2;color:#1b5e3a;border-left:3px solid #4CAF7D;}
+.clasificador-result.partial{background:#fff3cd;color:#856404;border-left:3px solid #ffc107;}
+
+/* ACT 3 — Termómetro de conflicto */
+.termometro-wrap{display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:start;}
+.term-controls{display:flex;flex-direction:column;gap:1.25rem;}
+.term-label-row{display:flex;justify-content:space-between;font-size:.82rem;color:var(--ink-light);margin-bottom:.3rem;}
+.term-slider{width:100%;accent-color:var(--accent);cursor:pointer;}
+.term-panel{background:var(--dark);color:var(--white);padding:2rem;min-height:280px;display:flex;flex-direction:column;gap:1rem;}
+.term-panel h4{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:300;color:var(--accent-light);}
+.term-etapa{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-light);opacity:.7;}
+.term-desc{font-size:.88rem;font-weight:300;opacity:.85;line-height:1.75;}
+.term-consejo{font-size:.8rem;color:var(--accent-light);border-top:1px solid rgba(255,255,255,.1);padding-top:.75rem;margin-top:.5rem;}
+.term-bar{width:100%;height:8px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;margin-top:.5rem;}
+.term-bar-fill{height:100%;background:linear-gradient(to right,#4CAF7D,var(--accent),#e57373);transition:width .4s ease;border-radius:4px;}
+
+/* TAREA */
+.tarea-box{background:var(--dark);color:var(--white);padding:2.5rem;position:relative;overflow:hidden;}
+.tarea-box::before{content:'✎';font-size:10rem;position:absolute;right:-1rem;top:-1rem;opacity:.05;pointer-events:none;line-height:1;}
+.tarea-header{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;}
+.tarea-badge{background:var(--accent);color:#fff;font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;padding:.3rem .75rem;font-weight:500;}
+.tarea-box h3{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:300;}
+.tarea-instrucciones{display:flex;flex-direction:column;gap:.75rem;margin-top:1.25rem;}
+.inst-item{display:flex;gap:1rem;align-items:flex-start;font-size:.88rem;font-weight:300;opacity:.9;line-height:1.65;}
+.inst-num{font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--accent-light);flex-shrink:0;line-height:1.2;}
+.tarea-entrega{margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,.12);display:flex;gap:2rem;flex-wrap:wrap;}
+.entrega-item{font-size:.82rem;opacity:.7;display:flex;align-items:center;gap:.4rem;}
+
+/* CONCLUSIÓN */
+.conclusion-box{background:var(--accent);color:var(--white);padding:3.5rem;position:relative;overflow:hidden;}
+.conclusion-box::before{content:'ψ';font-family:'Cormorant Garamond',serif;font-size:14rem;line-height:1;position:absolute;right:1rem;top:-2rem;opacity:.08;pointer-events:none;}
+.conclusion-box h2{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:300;margin-bottom:1.25rem;position:relative;}
+.conclusion-box p{font-size:.95rem;font-weight:300;line-height:1.85;opacity:.92;max-width:680px;position:relative;}
+
+footer{text-align:center;padding:3rem 2rem;font-size:.78rem;color:var(--ink-light);letter-spacing:.08em;border-top:1px solid var(--line);font-weight:300;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:none;}}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(5px);}}
+
+/* MOBILE */
+@media(max-width:768px){
+  .section{opacity:1!important;transform:none!important;transition:none!important;padding:3rem 1.25rem;}
+  .nav-dots{display:none;}
+  .hero{padding:4rem 1.25rem 3rem;}
+  .trio-grid{grid-template-columns:1fr;}
+  .comp-split{grid-template-columns:1fr;}
+  .drop-zones{grid-template-columns:1fr;}
+  .termometro-wrap{grid-template-columns:1fr;}
+  .ejemplo-box{grid-template-columns:1fr;gap:.75rem;}
+  .ejemplo-label{writing-mode:horizontal-tb;transform:none;}
+  .conclusion-box{padding:2.5rem 1.5rem;}
+  .tarea-box{padding:2rem 1.25rem;}
+  .section-header{gap:1rem;margin-bottom:2rem;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav-dots" id="navDots">
+  <div class="nav-dot active" data-target="hero"></div>
+  <div class="nav-dot" data-target="proximidad"></div>
+  <div class="nav-dot" data-target="competencia"></div>
+  <div class="nav-dot" data-target="conflicto"></div>
+  <div class="nav-dot" data-target="actividades"></div>
+  <div class="nav-dot" data-target="tarea"></div>
+  <div class="nav-dot" data-target="conclusion"></div>
+</nav>
+
+<!-- HERO -->
+<section id="hero" class="hero">
+  <p class="hero-label">Psicología Social — Semana 4</p>
+  <h1>Atracción,<br>Repulsión<br>y <em>Conflicto</em></h1>
+  <p class="hero-desc">Cómo la proximidad, la competencia y el choque de intereses moldean nuestras relaciones interpersonales.</p>
+  <div class="scroll-cue" onclick="document.getElementById('proximidad').scrollIntoView({behavior:'smooth'})">
+    <span class="arrow">↓</span><span>Explorar</span>
+  </div>
+</section>
+
+<!-- PROXIMIDAD / ALEJAMIENTO / FAMILIARIDAD -->
+<section id="proximidad" class="section">
+  <div class="section-header">
+    <span class="section-number">01</span>
+    <h2>Proximidad, Alejamiento<br>y Familiaridad</h2>
+  </div>
+  <p class="lead">Las distancias —físicas y emocionales— entre personas determinan en gran medida la calidad y el tipo de vínculos que se forman.</p>
+
+  <div class="trio-grid">
+    <div class="trio-card">
+      <span class="trio-tag">Atracción</span>
+      <h3>Proximidad</h3>
+      <p>Cercanía física o emocional entre personas. A mayor proximidad, mayor posibilidad de generar vínculos afectivos o de colaboración.</p>
+      <div class="trio-example">Estudiantes que se sientan juntos a diario tienden a formar amistad más rápido.</div>
+    </div>
+    <div class="trio-card">
+      <span class="trio-tag">Repulsión</span>
+      <h3>Alejamiento</h3>
+      <p>Distanciamiento surgido de diferencias personales, ideológicas o físicas. Puede ser voluntario o forzado.</p>
+      <div class="trio-example">Una discusión puede llevar a dos amigos a evitarse mutuamente.</div>
+    </div>
+    <div class="trio-card">
+      <span class="trio-tag">Confianza</span>
+      <h3>Familiaridad</h3>
+      <p>Surge del conocimiento mutuo repetido; genera confianza, empatía y facilita las relaciones interpersonales.</p>
+      <div class="trio-example">Conocer a alguien desde la infancia influye en cómo lo tratamos en la adultez.</div>
+    </div>
+  </div>
+
+  <div class="ejemplo-box">
+    <span class="ejemplo-label">Efecto de exposición</span>
+    <div>
+      <h4>El efecto de mera exposición (Zajonc, 1968)</h4>
+      <p>Cuanto más vemos o interactuamos con algo o alguien, más positiva se vuelve nuestra actitud hacia ello, aunque la exposición no implique interacción real. Esto explica por qué la familiaridad genera atracción incluso sin esfuerzo consciente.</p>
+    </div>
+  </div>
+</section>
+
+<!-- COMPETENCIA -->
+<section id="competencia" class="section">
+  <div class="section-header">
+    <span class="section-number">02</span>
+    <h2>Competencia</h2>
+  </div>
+  <p class="lead">Relación donde dos o más personas o grupos buscan un objetivo que no puede ser completamente compartido.</p>
+
+  <div class="comp-split">
+    <div class="comp-box pos">
+      <h3>Competencia positiva</h3>
+      <p>Actúa como motor de crecimiento. Motiva a mejorar el desempeño, impulsa la innovación y puede fortalecer habilidades individuales y grupales.</p>
+    </div>
+    <div class="comp-box neg">
+      <h3>Competencia negativa</h3>
+      <p>Genera envidias, conductas de sabotaje y estrés elevado. Cuando el objetivo se vuelve más importante que la relación, el ambiente se deteriora.</p>
+    </div>
+  </div>
+
+  <div class="tipos-row">
+    <div class="tipo-item">
+      <strong>Individual</strong>
+      <span style="font-size:.85rem;color:var(--ink-light);font-weight:300;">Entre personas por un recurso limitado. Ej: una beca, una plaza laboral.</span>
+    </div>
+    <div class="tipo-item">
+      <strong>Grupal</strong>
+      <span style="font-size:.85rem;color:var(--ink-light);font-weight:300;">Entre equipos o instituciones. Ej: competencias deportivas entre escuelas.</span>
+    </div>
+  </div>
+
+  <div class="ejemplo-box">
+    <span class="ejemplo-label">Caso en aula</span>
+    <div>
+      <h4>Dos compañeros por el primer lugar</h4>
+      <p>Cuando dos estudiantes compiten por el mejor promedio, la dinámica puede motivarlos a estudiar más —competencia sana— o llevarlos a ocultarse información y generar tensión constante, transformando el aula en un espacio de desconfianza.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CONFLICTO -->
+<section id="conflicto" class="section">
+  <div class="section-header">
+    <span class="section-number">03</span>
+    <h2>Conflicto</h2>
+  </div>
+  <p class="lead">Choque de intereses, valores o necesidades entre personas o grupos. Puede ser abierto o encubierto; manejado correctamente, impulsa el cambio y el crecimiento.</p>
+
+  <div class="etapas-timeline">
+    <div class="etapa-item">
+      <h4>01 — Latencia</h4>
+      <p>Las diferencias existen pero aún no se manifiestan. La tensión es silenciosa e invisible para los demás.</p>
+    </div>
+    <div class="etapa-item">
+      <h4>02 — Confrontación</h4>
+      <p>Las diferencias se expresan. El conflicto se hace visible y los involucrados toman posición.</p>
+    </div>
+    <div class="etapa-item">
+      <h4>03 — Negociación o escalada</h4>
+      <p>Se busca una solución mediante el diálogo, o bien el conflicto se agrava si ninguna parte cede.</p>
+    </div>
+    <div class="etapa-item">
+      <h4>04 — Resolución o ruptura</h4>
+      <p>El conflicto se resuelve con acuerdos, o la relación se rompe de forma temporal o definitiva.</p>
+    </div>
+  </div>
+
+  <div class="ejemplo-box">
+    <span class="ejemplo-label">Ejemplo cotidiano</span>
+    <div>
+      <h4>Tarea grupal en desacuerdo</h4>
+      <p>Un conflicto entre estudiantes por la distribución del trabajo puede pasar por todas las etapas: silencio inicial (latencia), discusión abierta (confrontación), rediseño de responsabilidades (negociación) y, si se resuelve bien, mayor cohesión del equipo (resolución positiva).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ACTIVIDADES -->
+<section id="actividades" class="section">
+  <div class="section-header">
+    <span class="section-number">04</span>
+    <h2>Actividades interactivas</h2>
+  </div>
+  <div class="actividades-intro">
+    <span>🎯</span>
+    <span>Tres actividades para trabajar en clase. Responde individualmente y después compara con tu grupo.</span>
+  </div>
+
+  <!-- ACT 1 — QUIZ -->
+  <div style="margin-bottom:3rem;">
+    <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:400;margin-bottom:1.5rem;padding-bottom:.75rem;border-bottom:1px solid var(--line);">Actividad 1 — Reconoce el concepto</h3>
+    <div class="quiz-wrap" id="quizWrap">
+
+      <div class="quiz-q" data-correct="b">
+        <p>Un estudiante nuevo llega al salón y después de tres semanas empieza a ser incluido en el grupo, sin que nadie haya tomado una decisión consciente de aceptarlo. ¿Qué fenómeno explica principalmente esto?</p>
+        <div class="quiz-opts">
+          <label class="quiz-opt"><input type="radio" name="q1" value="a"> Competencia positiva</label>
+          <label class="quiz-opt"><input type="radio" name="q1" value="b"> Efecto de familiaridad / mera exposición</label>
+          <label class="quiz-opt"><input type="radio" name="q1" value="c"> Conflicto encubierto</label>
+          <label class="quiz-opt"><input type="radio" name="q1" value="d"> Alejamiento voluntario</label>
+        </div>
+        <div class="quiz-feedback" id="fb1"></div>
+        <button class="quiz-btn" onclick="checkQ(1,'b','fb1')">Verificar</button>
+      </div>
+
+      <div class="quiz-q" data-correct="c">
+        <p>En un equipo de trabajo, dos miembros llevan semanas sin hablarse pero nadie ha expresado el problema en voz alta. Las reuniones son tensas aunque aparentemente "normales". ¿En qué etapa del conflicto se encuentran?</p>
+        <div class="quiz-opts">
+          <label class="quiz-opt"><input type="radio" name="q2" value="a"> Confrontación</label>
+          <label class="quiz-opt"><input type="radio" name="q2" value="b"> Resolución</label>
+          <label class="quiz-opt"><input type="radio" name="q2" value="c"> Latencia</label>
+          <label class="quiz-opt"><input type="radio" name="q2" value="d"> Escalada</label>
+        </div>
+        <div class="quiz-feedback" id="fb2"></div>
+        <button class="quiz-btn" onclick="checkQ(2,'c','fb2')">Verificar</button>
+      </div>
+
+      <div class="quiz-q" data-correct="a">
+        <p>Dos empresas del mismo ramo invierten más en I+D cada año porque ninguna quiere quedarse atrás. Sus productos mejoran constantemente y los consumidores se benefician. ¿Qué tipo de competencia describe esto?</p>
+        <div class="quiz-opts">
+          <label class="quiz-opt"><input type="radio" name="q3" value="a"> Competencia grupal positiva</label>
+          <label class="quiz-opt"><input type="radio" name="q3" value="b"> Conflicto de valores</label>
+          <label class="quiz-opt"><input type="radio" name="q3" value="c"> Alejamiento forzado</label>
+          <label class="quiz-opt"><input type="radio" name="q3" value="d"> Competencia individual negativa</label>
+        </div>
+        <div class="quiz-feedback" id="fb3"></div>
+        <button class="quiz-btn" onclick="checkQ(3,'a','fb3')">Verificar</button>
+      </div>
+
+      <div class="quiz-q" data-correct="d">
+        <p>Dos amigos discuten por primera vez de forma abierta sobre algo que les molestaba desde hace meses, llegan a un acuerdo y su amistad se fortalece. ¿Qué secuencia de etapas del conflicto vivieron?</p>
+        <div class="quiz-opts">
+          <label class="quiz-opt"><input type="radio" name="q4" value="a"> Escalada → Ruptura</label>
+          <label class="quiz-opt"><input type="radio" name="q4" value="b"> Confrontación → Latencia</label>
+          <label class="quiz-opt"><input type="radio" name="q4" value="c"> Latencia → Escalada → Ruptura</label>
+          <label class="quiz-opt"><input type="radio" name="q4" value="d"> Latencia → Confrontación → Negociación → Resolución</label>
+        </div>
+        <div class="quiz-feedback" id="fb4"></div>
+        <button class="quiz-btn" onclick="checkQ(4,'d','fb4')">Verificar</button>
+      </div>
+
+    </div>
+    <div class="quiz-result" id="quizResult">
+      <div class="score" id="quizScore">—</div>
+      <p id="quizMsg"></p>
+    </div>
+    <button class="quiz-btn" style="margin-top:1rem;" onclick="showFinalScore()">Ver resultado final</button>
+  </div>
+
+  <!-- ACT 2 — CLASIFICADOR -->
+  <div style="margin-bottom:3rem;">
+    <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:400;margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--line);">Actividad 2 — Clasifica las situaciones</h3>
+    <p class="clasificador-intro">Arrastra cada situación a la categoría correspondiente. Una situación puede pertenecer a más de una si el grupo lo justifica.</p>
+
+    <div class="drag-area" id="chipPool"></div>
+
+    <div class="drop-zones">
+      <div class="drop-zone" id="zone-proximidad">
+        <div class="drop-zone-label">Proximidad / Familiaridad</div>
+      </div>
+      <div class="drop-zone" id="zone-competencia">
+        <div class="drop-zone-label">Competencia</div>
+      </div>
+      <div class="drop-zone" id="zone-conflicto">
+        <div class="drop-zone-label">Conflicto</div>
+      </div>
+    </div>
+
+    <div class="clasificador-actions">
+      <button class="btn-check" onclick="checkClasificador()">Verificar clasificación</button>
+      <button class="btn-reset" onclick="resetClasificador()">Reiniciar</button>
+    </div>
+    <div class="clasificador-result" id="clasResult"></div>
+  </div>
+
+  <!-- ACT 3 — TERMÓMETRO -->
+  <div>
+    <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:400;margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--line);">Actividad 3 — Termómetro del conflicto</h3>
+    <p style="font-size:.88rem;color:var(--ink-light);margin-bottom:1.5rem;">Ajusta los tres factores y observa cómo cambia la etapa del conflicto en tiempo real.</p>
+
+    <div class="termometro-wrap">
+      <div class="term-controls">
+        <div>
+          <div class="term-label-row"><span>Intensidad emocional</span><span id="lbl-emo">50%</span></div>
+          <input class="term-slider" type="range" min="0" max="100" value="50" id="sl-emo" oninput="updateTerm()">
+        </div>
+        <div>
+          <div class="term-label-row"><span>Diferencia de intereses</span><span id="lbl-int">50%</span></div>
+          <input class="term-slider" type="range" min="0" max="100" value="50" id="sl-int" oninput="updateTerm()">
+        </div>
+        <div>
+          <div class="term-label-row"><span>Voluntad de dialogar</span><span id="lbl-dia">50%</span></div>
+          <input class="term-slider" type="range" min="0" max="100" value="50" id="sl-dia" oninput="updateTerm()">
+        </div>
+      </div>
+      <div class="term-panel" id="termPanel">
+        <div class="term-etapa" id="termEtapa">—</div>
+        <h4 id="termTitulo">Ajusta los factores</h4>
+        <div class="term-bar"><div class="term-bar-fill" id="termBarFill" style="width:50%;"></div></div>
+        <p class="term-desc" id="termDesc">Mueve los controles para simular un escenario de conflicto y descubrir en qué etapa se encuentra.</p>
+        <p class="term-consejo" id="termConsejo"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TAREA -->
+<section id="tarea" class="section">
+  <div class="section-header">
+    <span class="section-number">05</span>
+    <h2>Tarea</h2>
+  </div>
+  <div class="tarea-box">
+    <div class="tarea-header">
+      <span class="tarea-badge">Tarea individual</span>
+      <h3>Análisis de un conflicto real</h3>
+    </div>
+    <div class="tarea-instrucciones">
+      <div class="inst-item">
+        <span class="inst-num">1</span>
+        <span>Piensa en un conflicto que hayas vivido o presenciado recientemente (escolar, familiar o social). Descríbelo brevemente en 3–4 líneas sin mencionar nombres reales.</span>
+      </div>
+      <div class="inst-item">
+        <span class="inst-num">2</span>
+        <span>Identifica y nombra las <strong>etapas del conflicto</strong> que se presentaron: ¿hubo latencia? ¿Se llegó a confrontación? ¿Cómo terminó?</span>
+      </div>
+      <div class="inst-item">
+        <span class="inst-num">3</span>
+        <span>Analiza si también existieron elementos de <strong>competencia o alejamiento</strong> en la situación. Explica con cuál concepto del tema los relacionas y por qué.</span>
+      </div>
+      <div class="inst-item">
+        <span class="inst-num">4</span>
+        <span>Propón al menos <strong>dos estrategias concretas</strong> que los involucrados podrían haber usado para resolver el conflicto en la etapa de negociación.</span>
+      </div>
+    </div>
+    <div class="tarea-entrega">
+      <span class="entrega-item">📄 Formato: Cuartilla escrita a mano o digital</span>
+      <span class="entrega-item">📅 Entrega: Próxima sesión</span>
+      <span class="entrega-item">📌 Extensión mínima: Media cuartilla</span>
+    </div>
+  </div>
+</section>
+
+<!-- CONCLUSIÓN -->
+<section id="conclusion" class="section">
+  <div class="section-header">
+    <span class="section-number">06</span>
+    <h2>Conclusión</h2>
+  </div>
+  <div class="conclusion-box">
+    <h2>Las fuerzas que nos acercan y nos alejan</h2>
+    <p>La atracción, la repulsión y el conflicto son fenómenos inevitables en la vida social. La proximidad y la familiaridad construyen vínculos; el alejamiento los erosiona. La competencia, según cómo se gestione, puede ser motor de crecimiento o fuente de deterioro. Y el conflicto, lejos de ser solo negativo, contiene en sí mismo la semilla de la transformación cuando se maneja con diálogo y disposición a negociar.</p>
+  </div>
+</section>
+
+<footer>Atracción, Repulsión y Conflicto &nbsp;·&nbsp; Psicología Social &nbsp;·&nbsp; César Delgado</footer>
+
+<script>
+// ── SCROLL OBSERVER ──
+const mq = window.matchMedia('(min-width: 769px)');
+const sections = document.querySelectorAll('.section');
+if (mq.matches) {
+  const io = new IntersectionObserver(e => e.forEach(x => { if(x.isIntersecting) x.target.classList.add('visible'); }), {threshold:.08});
+  sections.forEach(s => io.observe(s));
+} else { sections.forEach(s => s.classList.add('visible')); }
+
+const dots = document.querySelectorAll('.nav-dot');
+const targets = [...dots].map(d => document.getElementById(d.dataset.target));
+if (mq.matches) {
+  const dObs = new IntersectionObserver(e => {
+    e.forEach(x => { if(x.isIntersecting){ dots.forEach(d=>d.classList.remove('active')); const i=targets.indexOf(x.target); if(i!==-1)dots[i].classList.add('active'); }});
+  }, {threshold:.3});
+  targets.forEach(t => t && dObs.observe(t));
+  dots.forEach((d,i) => d.addEventListener('click', () => targets[i]?.scrollIntoView({behavior:'smooth'})));
+}
+
+// ── ACT 1: QUIZ ──
+const feedbacks = {
+  1: { b: 'Correcto. El efecto de mera exposición (Zajonc) explica cómo la repetición de contacto genera familiaridad y aceptación gradual.' },
+  2: { c: 'Correcto. La latencia es la etapa donde el conflicto existe pero permanece silencioso y no expresado.' },
+  3: { a: 'Correcto. Es competencia grupal positiva: impulsa la mejora de ambas partes y beneficia a terceros.' },
+  4: { d: 'Correcto. Vivieron el ciclo completo: latencia (meses de silencio) → confrontación (discusión) → negociación (acuerdo) → resolución (amistad más fuerte).' }
+};
+const wrongFeedbacks = ['Revisa el concepto e intenta de nuevo.','Piensa en qué caracteriza a esa etapa.','Considera el tipo y resultado de la competencia.','Sigue las etapas en orden: ¿cuál faltó?'];
+let scores = {};
+
+function checkQ(n, correct, fbId) {
+  const sel = document.querySelector(`input[name="q${n}"]:checked`);
+  const fb = document.getElementById(fbId);
+  if (!sel) { fb.textContent = 'Selecciona una opción primero.'; fb.className = 'quiz-feedback show fail'; return; }
+  const opts = document.querySelectorAll(`input[name="q${n}"]`);
+  opts.forEach(o => {
+    const lbl = o.parentElement;
+    lbl.style.pointerEvents = 'none';
+    if (o.value === correct) lbl.classList.add('correct');
+    else if (o.checked) lbl.classList.add('wrong');
+  });
+  if (sel.value === correct) {
+    fb.textContent = '✓ ' + feedbacks[n][correct];
+    fb.className = 'quiz-feedback show ok';
+    scores[n] = 1;
+  } else {
+    fb.textContent = '✗ ' + wrongFeedbacks[n-1];
+    fb.className = 'quiz-feedback show fail';
+    scores[n] = 0;
+  }
+  document.querySelectorAll(`#quizWrap .quiz-q:nth-child(${n}) .quiz-btn`)[0].disabled = true;
+}
+
+function showFinalScore() {
+  const total = Object.values(scores).reduce((a,b)=>a+b,0);
+  const res = document.getElementById('quizResult');
+  document.getElementById('quizScore').textContent = total + '/4';
+  const msgs = ['Revisa los conceptos con calma.','Vas por buen camino, repasa los que fallaste.','¡Muy bien! Solo un detalle por ajustar.','¡Excelente! Dominas el tema.'];
+  document.getElementById('quizMsg').textContent = msgs[total] || '';
+  res.classList.add('show');
+}
+
+// ── ACT 2: CLASIFICADOR ──
+const situaciones = [
+  { id:'s1', text:'Verte todos los días en el camión hace que gradualmente les tengas más confianza.', correct:'proximidad' },
+  { id:'s2', text:'Dos grupos aspiran al mismo espacio en el festival escolar y cada uno busca impresionar más.', correct:'competencia' },
+  { id:'s3', text:'Después de que te ignoraron semanas, decides dejar de sentarte con ese grupo.', correct:'conflicto' },
+  { id:'s4', text:'Tus compañeros de infancia y tú se entienden sin explicar demasiado.', correct:'proximidad' },
+  { id:'s5', text:'Dos alumnos discuten en voz alta sobre quién debería exponer primero.', correct:'conflicto' },
+  { id:'s6', text:'Cada equipo del torneo entrena más duro para ganar el campeonato.', correct:'competencia' },
+];
+
+function buildChips() {
+  const pool = document.getElementById('chipPool');
+  pool.innerHTML = '';
+  [...situaciones].sort(()=>Math.random()-.5).forEach(s => {
+    const chip = document.createElement('div');
+    chip.className = 'drag-chip'; chip.textContent = s.text;
+    chip.draggable = true; chip.dataset.id = s.id;
+    chip.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', s.id); chip.classList.add('dragging'); });
+    chip.addEventListener('dragend', () => chip.classList.remove('dragging'));
+    pool.appendChild(chip);
+  });
+}
+
+document.querySelectorAll('.drop-zone').forEach(zone => {
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('drag-over');
+    const id = e.dataTransfer.getData('text/plain');
+    const orig = document.querySelector(`.drag-chip[data-id="${id}"]`) || document.querySelector(`.drop-chip[data-id="${id}"]`);
+    if (!orig) return;
+    orig.remove();
+    const chip = document.createElement('div');
+    chip.className = 'drop-chip'; chip.dataset.id = id;
+    const sit = situaciones.find(s=>s.id===id);
+    chip.innerHTML = `${sit.text} <button class="remove-chip" onclick="returnChip('${id}',this.parentElement)">×</button>`;
+    zone.appendChild(chip);
+  });
+});
+
+function returnChip(id, el) {
+  el.remove();
+  const pool = document.getElementById('chipPool');
+  const sit = situaciones.find(s=>s.id===id);
+  const chip = document.createElement('div');
+  chip.className = 'drag-chip'; chip.textContent = sit.text;
+  chip.draggable = true; chip.dataset.id = id;
+  chip.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', id); chip.classList.add('dragging'); });
+  chip.addEventListener('dragend', () => chip.classList.remove('dragging'));
+  pool.appendChild(chip);
+}
+
+function checkClasificador() {
+  let correct = 0, total = 0;
+  document.querySelectorAll('.drop-zone').forEach(zone => {
+    const zoneId = zone.id.replace('zone-','');
+    zone.querySelectorAll('.drop-chip').forEach(chip => {
+      total++;
+      const sit = situaciones.find(s=>s.id===chip.dataset.id);
+      if (sit && sit.correct === zoneId) { chip.classList.add('chip-correct'); correct++; }
+      else chip.classList.add('chip-wrong');
+    });
+  });
+  const res = document.getElementById('clasResult');
+  if (total === 0) { res.textContent = 'Arrastra al menos una situación antes de verificar.'; res.className='clasificador-result show partial'; return; }
+  const pct = Math.round((correct/total)*100);
+  res.textContent = `${correct} de ${total} correctas (${pct}%). ${pct===100?'¡Clasificación perfecta!':pct>=50?'Buen intento, revisa las marcadas en rojo.':'Revisa los conceptos e inténtalo de nuevo.'}`;
+  res.className = `clasificador-result show ${pct===100?'ok':'partial'}`;
+}
+
+function resetClasificador() {
+  document.querySelectorAll('.drop-zone').forEach(z => { z.querySelectorAll('.drop-chip').forEach(c=>c.remove()); });
+  document.getElementById('clasResult').className='clasificador-result';
+  buildChips();
+}
+
+buildChips();
+
+// ── ACT 3: TERMÓMETRO ──
+const termData = [
+  { min:0,  max:25,  etapa:'Sin conflicto activo',       titulo:'Convivencia tranquila',       desc:'Los factores de conflicto son bajos. Las partes coexisten sin tensión visible. La diferencia de intereses no ha generado fricción significativa.', consejo:'Momento ideal para construir acuerdos preventivos y fortalecer la comunicación.' },
+  { min:26, max:45,  etapa:'Etapa de Latencia',           titulo:'Tensión silenciosa',          desc:'Hay diferencias pero no se han expresado. La situación puede estabilizarse o escalar dependiendo de cómo actúen las partes involucradas.', consejo:'Consejo: Abrir espacios de diálogo antes de que la tensión crezca.' },
+  { min:46, max:65,  etapa:'Etapa de Confrontación',      titulo:'El conflicto emerge',         desc:'Las diferencias se hacen visibles. Las partes expresan su posición, a veces con intensidad emocional elevada. Es un momento crítico.', consejo:'Consejo: Escucha activa y separar posiciones de intereses reales.' },
+  { min:66, max:82,  etapa:'Negociación / Escalada',      titulo:'Punto de quiebre',            desc:'El conflicto puede resolverse mediante negociación o agravarse si ninguna parte cede. La voluntad de dialogar es el factor decisivo aquí.', consejo:'Consejo: Un mediador neutral puede facilitar el proceso en esta etapa.' },
+  { min:83, max:100, etapa:'Escalada crítica / Ruptura',  titulo:'Riesgo de ruptura',           desc:'Alta intensidad emocional con poca voluntad de diálogo. El conflicto está en su punto más alto. La relación corre riesgo de romperse.', consejo:'Consejo: Pausa obligatoria antes de actuar. El tiempo puede bajar la intensidad.' },
+];
+
+function updateTerm() {
+  const emo = +document.getElementById('sl-emo').value;
+  const intr = +document.getElementById('sl-int').value;
+  const dia = +document.getElementById('sl-dia').value;
+  document.getElementById('lbl-emo').textContent = emo + '%';
+  document.getElementById('lbl-int').textContent = intr + '%';
+  document.getElementById('lbl-dia').textContent = dia + '%';
+  // Score: emo y diferencia suman, dialogo resta
+  const score = Math.min(100, Math.max(0, Math.round((emo * 0.4) + (intr * 0.4) - (dia * 0.3) + 20)));
+  document.getElementById('termBarFill').style.width = score + '%';
+  const stage = termData.find(t => score >= t.min && score <= t.max) || termData[4];
+  document.getElementById('termEtapa').textContent = stage.etapa;
+  document.getElementById('termTitulo').textContent = stage.titulo;
+  document.getElementById('termDesc').textContent = stage.desc;
+  document.getElementById('termConsejo').textContent = stage.consejo;
+}
+updateTerm();
+</script>
+</body>
+</html>

@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
-        /* ===== ESTILOS BASE ===== */
+        /* ===== ESTILOS BASE (sin cambios) ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Comfortaa', sans-serif; transition: background 0.3s, color 0.3s; }
         body.dark { background: radial-gradient(circle at 20% 30%, #1a1a1c, #0b0b0e); color: #e0e0e0; }
@@ -484,7 +484,7 @@
         });
     }
 
-    // --------------------- REGISTROS GUARDADOS ---------------------
+    // --------------------- REGISTROS GUARDADOS (con badge ahora muestra tema) ---------------------
     let currentSearchText = "";
     let currentClasificacionFilter = "todos";
     let registrosDynamicContainer = null;
@@ -549,6 +549,8 @@
             filtered.forEach(grupo => {
                 const idx = appData.grupos.findIndex(g => g === grupo);
                 const validado = grupo.validado ? 'validado' : '';
+                // Badge ahora muestra el tema (si no hay tema, muestra "Sin tema")
+                const temaMostrar = grupo.tema && grupo.tema.trim() !== "" ? grupo.tema : "Sin tema";
                 gruposHtml += `
                     <div class="grupo-item" data-grupo-idx="${idx}">
                         <div class="grupo-header">
@@ -561,7 +563,7 @@
                                 <button class="btn-icon eliminar-grupo" data-index="${idx}" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
                             </div>
                         </div>
-                        <div class="clasificacion-badge ${validado}">${escapeHtml(grupo.clasificacion) || 'Sin clasificación'}</div>
+                        <div class="clasificacion-badge ${validado}">${escapeHtml(temaMostrar)}</div>
                         <div class="respuesta-preview">
                             <span class="respuesta-texto">${escapeHtml(grupo.respuesta)}</span>
                             <button class="copy-respuesta-btn" data-respuesta="${escapeHtml(grupo.respuesta)}" title="Copiar respuesta"><i class="fas fa-copy"></i></button>
@@ -569,7 +571,7 @@
                         <div class="grupo-details" style="display: none;">
                             <div class="meta-chips">
                                 <div class="chip-group"><strong>Dirección</strong><div class="chip-list"><span class="chip-text">${escapeHtml(grupo.direccion) || '—'}</span></div></div>
-                                <div class="chip-group"><strong>Tema</strong><div class="chip-list"><span class="chip-text">${escapeHtml(grupo.tema) || '—'}</span></div></div>
+                                <div class="chip-group"><strong>Clasificación</strong><div class="chip-list"><span class="chip-text">${escapeHtml(grupo.clasificacion) || '—'}</span></div></div>
                                 <div class="chip-group"><strong>Palabras clave</strong><div class="chip-list">${grupo.palabras_clave.length ? grupo.palabras_clave.map(k => `<span class="chip">${escapeHtml(k)}</span>`).join('') : '<span class="chip-text">—</span>'}</div></div>
                                 <div class="chip-group"><strong>Abreviaciones</strong><div class="chip-list">${grupo.abreviaciones.length ? grupo.abreviaciones.map(a => `<span class="chip">${escapeHtml(a)}</span>`).join('') : '<span class="chip-text">—</span>'}</div></div>
                             </div>
@@ -623,7 +625,7 @@
                 }
             });
         });
-        // Validación con ícono (ahora en la cabecera)
+        // Validación con ícono
         document.querySelectorAll('.toggle-validado').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -696,7 +698,7 @@
         });
     }
 
-    // --------------------- GENERADOR (con botón de copiar en Respuesta principal) ---------------------
+    // --------------------- GENERADOR ---------------------
     function renderizarGenerador() {
         const b = appData.borrador;
         const editando = appData.editandoIndex !== null;
@@ -774,14 +776,12 @@
             contenidoDinamico.innerHTML = renderizarGenerador();
             const campos = ['direccion','respuesta','clasificacion','tema','palabras_clave','abreviaciones','pregunta1','pregunta2','pregunta3'];
             campos.forEach(campo => { const el = document.getElementById(campo); if (el) el.addEventListener('input', (e) => { appData.borrador[campo] = e.target.value; guardarLocalStorage(); }); });
-            // Eventos para botones de limpiar
             document.querySelectorAll('.clear-field-inside').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const field = btn.getAttribute('data-field');
                     if (field) limpiarCampo(field, true);
                 });
             });
-            // Eventos para botón de copiar (solo respuesta)
             document.querySelectorAll('.copy-field-inside').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const field = btn.getAttribute('data-field-copy');

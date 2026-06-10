@@ -295,7 +295,7 @@
     }
     function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : (m === '<' ? '&lt;' : '&gt;')); }
 
-    function limpiarCampo(nombreCampo, ignoreProtection = false) {
+    function limpiarCampo(nombreCampo, ignoreProtection = false, inputElement = null) {
         if (!ignoreProtection && appData.protectedFields[nombreCampo]) {
             alert(`El campo "${nombreCampo}" está protegido. No se puede borrar con el botón global.`);
             return;
@@ -303,6 +303,10 @@
         appData.borrador[nombreCampo] = "";
         guardarLocalStorage();
         renderizarSeccion(currentSection);
+        // Después de renderizar, enfocar el campo si se pasó el elemento original
+        if (inputElement && document.getElementById(nombreCampo)) {
+            document.getElementById(nombreCampo).focus();
+        }
     }
 
     function limpiarFormularioRespetandoProteccion() {
@@ -382,6 +386,19 @@
             }
             guardarLocalStorage();
             renderizarSeccion(currentSection);
+        }
+    }
+
+    // Reordenar grupos (mover arriba/abajo)
+    function moverGrupo(index, direccion) {
+        const nuevosGrupos = [...appData.grupos];
+        const nuevoIndex = direccion === 'up' ? index - 1 : index + 1;
+        if (nuevoIndex < 0 || nuevoIndex >= nuevosGrupos.length) return;
+        [nuevosGrupos[index], nuevosGrupos[nuevoIndex]] = [nuevosGrupos[nuevoIndex], nuevosGrupos[index]];
+        appData.grupos = nuevosGrupos;
+        guardarLocalStorage();
+        if (currentSection === "registros") {
+            renderizarSeccion("registros");
         }
     }
 
@@ -484,7 +501,7 @@
         });
     }
 
-    // --------------------- REGISTROS GUARDADOS ---------------------
+    // --------------------- REGISTROS GUARDADOS (con botones de reordenación) ---------------------
     let currentSearchText = "";
     let currentClasificacionFilter = "todos";
     let registrosDynamicContainer = null;
@@ -496,17 +513,6 @@
             <div class="stat-badge">Total: ${total}</div>
             <div class="stat-badge">Filtrados: ${filtrados}</div>
         `;
-    }
-
-    // Función para reordenar grupos (subir/bajar)
-    function moverGrupo(idx, direccion) {
-        const newIdx = direccion === 'up' ? idx - 1 : idx + 1;
-        if (newIdx < 0 || newIdx >= appData.grupos.length) return;
-        // Intercambiar posiciones
-        [appData.grupos[idx], appData.grupos[newIdx]] = [appData.grupos[newIdx], appData.grupos[idx]];
-        guardarLocalStorage();
-        // Re-renderizar la sección actual (registros) pero manteniendo filtros
-        aplicarFiltrosYRenderizar();
     }
 
     function aplicarFiltrosYRenderizar() {
@@ -564,9 +570,9 @@
                     <div class="grupo-item" data-grupo-idx="${idx}">
                         <div class="grupo-header">
                             <i class="fas fa-chevron-right toggle-icon" style="cursor:pointer;"></i>
-                            <div>
-                                <button class="btn-icon mover-arriba" data-idx="${idx}" title="Mover arriba" ${idx === 0 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}><i class="fas fa-arrow-up"></i></button>
-                                <button class="btn-icon mover-abajo" data-idx="${idx}" title="Mover abajo" ${idx === appData.grupos.length-1 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}><i class="fas fa-arrow-down"></i></button>
+                            <div class="action-buttons" style="display: flex; gap: 0.3rem;">
+                                <button class="btn-icon mover-up" data-index="${idx}" title="Mover arriba"><i class="fas fa-arrow-up"></i></button>
+                                <button class="btn-icon mover-down" data-index="${idx}" title="Mover abajo"><i class="fas fa-arrow-down"></i></button>
                                 <button class="btn-icon toggle-validado" data-idx="${idx}" title="${grupo.validado ? 'Desmarcar como confirmado' : 'Marcar como confirmado'}">
                                     <i class="fas ${grupo.validado ? 'fa-times-circle' : 'fa-check-circle'}"></i>
                                 </button>
@@ -622,23 +628,19 @@
     }
 
     function attachGruposEvents() {
-        // Botones de mover arriba/abajo
-        document.querySelectorAll('.mover-arriba').forEach(btn => {
+        // Mover arriba/abajo
+        document.querySelectorAll('.mover-up').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const idx = parseInt(btn.getAttribute('data-idx'));
-                if (!isNaN(idx) && idx > 0) {
-                    moverGrupo(idx, 'up');
-                }
+                const idx = parseInt(btn.getAttribute('data-index'));
+                moverGrupo(idx, 'up');
             });
         });
-        document.querySelectorAll('.mover-abajo').forEach(btn => {
+        document.querySelectorAll('.mover-down').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const idx = parseInt(btn.getAttribute('data-idx'));
-                if (!isNaN(idx) && idx < appData.grupos.length - 1) {
-                    moverGrupo(idx, 'down');
-                }
+                const idx = parseInt(btn.getAttribute('data-index'));
+                moverGrupo(idx, 'down');
             });
         });
         // Copiar respuesta
@@ -713,7 +715,7 @@
                 setState(false);
                 toggleIcon.addEventListener('click', (e) => { e.stopPropagation(); const isExpanded = detailsDiv.style.display === 'block'; setState(!isExpanded); });
                 item.addEventListener('click', (e) => {
-                    if (e.target.closest('.editar-grupo') || e.target.closest('.eliminar-grupo') || e.target.closest('.toggle-icon') || e.target.closest('.toggle-validado') || e.target.closest('.copy-pregunta-btn') || e.target.closest('.copy-respuesta-btn') || e.target.closest('.mover-arriba') || e.target.closest('.mover-abajo')) return;
+                    if (e.target.closest('.editar-grupo') || e.target.closest('.eliminar-grupo') || e.target.closest('.toggle-icon') || e.target.closest('.toggle-validado') || e.target.closest('.copy-pregunta-btn') || e.target.closest('.copy-respuesta-btn') || e.target.closest('.mover-up') || e.target.closest('.mover-down')) return;
                     const isExpanded = detailsDiv.style.display === 'block';
                     setState(!isExpanded);
                 });
@@ -728,7 +730,7 @@
         });
     }
 
-    // --------------------- GENERADOR (sin cambios) ---------------------
+    // --------------------- GENERADOR (con auto-foco después de limpiar) ---------------------
     function renderizarGenerador() {
         const b = appData.borrador;
         const editando = appData.editandoIndex !== null;
@@ -806,20 +808,25 @@
             contenidoDinamico.innerHTML = renderizarGenerador();
             const campos = ['direccion','respuesta','clasificacion','tema','palabras_clave','abreviaciones','pregunta1','pregunta2','pregunta3'];
             campos.forEach(campo => { const el = document.getElementById(campo); if (el) el.addEventListener('input', (e) => { appData.borrador[campo] = e.target.value; guardarLocalStorage(); }); });
+            // Eventos para botones de limpiar (con auto-foco)
             document.querySelectorAll('.clear-field-inside').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const field = btn.getAttribute('data-field');
-                    if (field) limpiarCampo(field, true);
+                    if (field) {
+                        // Capturamos el elemento actual antes de limpiar
+                        const inputElement = document.getElementById(field);
+                        limpiarCampo(field, true, inputElement);
+                    }
                 });
             });
+            // Eventos para botón de copiar
             document.querySelectorAll('.copy-field-inside').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const field = btn.getAttribute('data-field-copy');
                     if (field) {
                         const inputElement = document.getElementById(field);
                         if (inputElement) {
-                            const textToCopy = inputElement.value;
-                            navigator.clipboard.writeText(textToCopy).then(() => {
+                            navigator.clipboard.writeText(inputElement.value).then(() => {
                                 const originalIcon = btn.innerHTML;
                                 btn.innerHTML = '<i class="fas fa-check"></i>';
                                 setTimeout(() => { btn.innerHTML = originalIcon; }, 1000);

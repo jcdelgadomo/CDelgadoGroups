@@ -75,6 +75,17 @@
         .fs-dot.inactive { background: #555; }
         .fs-dot.active { background: #66bb6a; box-shadow: 0 0 4px #66bb6a; }
         .fs-dot.error { background: #ef5350; }
+        .folder-location {
+            font-size: 0.6rem;
+            text-align: center;
+            margin-top: 0;
+            padding: 0;
+            line-height: 1.2;
+            color: #a0a0a8;
+        }
+        body.light .folder-location {
+            color: #6c757d;
+        }
         .reconnect-banner {
             position: fixed;
             bottom: 1rem;
@@ -263,8 +274,9 @@
         <div>
             <div class="sidebar-actions">
                 <button id="exportarExcelBtn"><i class="fas fa-file-excel"></i> Exportar a Excel</button>
-                <button id="limpiarHistorialBtn"><i class="fas fa-trash-alt"></i> Limpiar todo el historial</button>
                 <button id="vincularCarpetaBtn"><i class="fas fa-folder-open"></i> Vincular carpeta local</button>
+                <button id="cargarRespaldoBtn"><i class="fas fa-upload"></i> Cargar respaldo</button>
+                <button id="limpiarHistorialBtn"><i class="fas fa-trash-alt"></i> Limpiar todo el historial</button>
             </div>
             <div class="sidebar-footer">
                 <div><i class="fas fa-database"></i> LocalStorage automático</div>
@@ -272,6 +284,7 @@
                     <span class="fs-dot inactive" id="fsDot"></span>
                     <span id="fsStatusText">Sin carpeta vinculada</span>
                 </div>
+                <div id="folderLocation" class="folder-location" style="display: none;"></div>
             </div>
         </div>
     </div>
@@ -695,9 +708,21 @@
         if (fsFileName) return fsFileName;
         const now = new Date();
         const pad = n => String(n).padStart(2, '0');
-        const fecha = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+        const fecha = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}`;
         fsFileName = `ChatBot_bd_${fecha}.json`;
         return fsFileName;
+    }
+
+    function actualizarFolderLocationUI(nombreCarpeta) {
+        const folderDiv = document.getElementById('folderLocation');
+        if (!folderDiv) return;
+        if (nombreCarpeta) {
+            folderDiv.textContent = nombreCarpeta;
+            folderDiv.style.display = 'block';
+        } else {
+            folderDiv.textContent = '';
+            folderDiv.style.display = 'none';
+        }
     }
 
     function actualizarFsStatusUI(estado, fileName = null) {
@@ -708,6 +733,7 @@
         if (estado === 'active') txt.textContent = `\u2713 ${fileName || fsFileName || 'Archivo'}`;
         else if (estado === 'error') txt.textContent = 'Error al escribir';
         else txt.textContent = 'Sin carpeta vinculada';
+        actualizarFolderLocationUI(fsDirectoryHandle ? fsDirectoryHandle.name : null);
     }
 
     async function guardarHandleIndexedDB(handle) {
@@ -771,7 +797,6 @@
         const handle = await cargarHandleIndexedDB();
         if (!handle) return false;
         if (!(await verificarPermisosHandle(handle))) {
-            // Mostrar banner para reconectar
             const banner = document.getElementById('reconnectBanner');
             if (banner) {
                 banner.style.display = 'flex';
@@ -830,17 +855,56 @@
         }
     }
 
+    // ========== FUNCIÓN CARGAR RESPALDO ==========
+    function cargarRespaldo() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/json, .json';
+        input.onchange = async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const contenido = JSON.parse(e.target.result);
+                    if (!Array.isArray(contenido)) throw new Error('El archivo no contiene un array válido.');
+                    for (let item of contenido) {
+                        if (typeof item !== 'object' || !item.direccion || !item.respuesta || !Array.isArray(item.preguntas) || item.preguntas.length !== 3) {
+                            throw new Error('El archivo no tiene la estructura esperada (objetos con direccion, respuesta y preguntas[3]).');
+                        }
+                    }
+                    appData.grupos = contenido;
+                    appData.grupos.forEach(g => { if (g.validado === undefined) g.validado = false; });
+                    limpiarFormularioRespetandoProteccion();
+                    resetearModoEdicion();
+                    guardarLocalStorage();
+                    if (fsDirectoryHandle) {
+                        await escribirArchivoLocal();
+                    }
+                    alert(`Respaldo cargado correctamente. ${contenido.length} grupos restaurados.`);
+                    renderizarSeccion(currentSection);
+                } catch (error) {
+                    alert('Error al cargar el respaldo: ' + error.message);
+                }
+            };
+            reader.onerror = () => alert('Error al leer el archivo.');
+            reader.readAsText(file);
+        };
+        input.click();
+    }
+
+    // Sobrescribir guardarLocalStorage para que también guarde en archivo si hay carpeta
     const _guardarLS = guardarLocalStorage;
     guardarLocalStorage = function() {
         _guardarLS();
         escribirArchivoLocal();
     };
-    // ========== FIN FILE SYSTEM ACCESS API ==========
 
     function initGlobalEvents() {
         document.getElementById('exportarExcelBtn').addEventListener('click', exportarChatbotExcel);
         document.getElementById('limpiarHistorialBtn').addEventListener('click', limpiarTodoHistorial);
         document.getElementById('vincularCarpetaBtn').addEventListener('click', vincularCarpeta);
+        document.getElementById('cargarRespaldoBtn').addEventListener('click', cargarRespaldo);
         const mobileBtn = document.getElementById('mobileMenuBtn');
         const sidebar = document.getElementById('sidebar');
         mobileBtn.addEventListener('click', () => sidebar.classList.toggle('open'));

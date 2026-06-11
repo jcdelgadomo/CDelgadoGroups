@@ -70,6 +70,11 @@
         .sidebar-footer { font-size: 0.7rem; text-align: center; border-top: 1px solid; padding-top: 1rem; margin-top: 1rem; font-family: 'Comfortaa', sans-serif; }
         body.dark .sidebar-footer { color: #6a6a70; border-color: #2c2c30; }
         body.light .sidebar-footer { color: #6c757d; border-color: #dee2e6; }
+        .fs-status { font-size: 0.7rem; margin-top: 0.4rem; display: flex; align-items: center; justify-content: center; gap: 0.4rem; font-family: 'Comfortaa', sans-serif; }
+        .fs-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+        .fs-dot.inactive { background: #555; }
+        .fs-dot.active { background: #66bb6a; box-shadow: 0 0 4px #66bb6a; }
+        .fs-dot.error { background: #ef5350; }
         .mobile-menu-btn { position: fixed; top: 1rem; left: 1rem; z-index: 101; background: #ff8c42; color: #0b0b0e; border: none; padding: 0.6rem; border-radius: 4px; cursor: pointer; display: none; font-size: 1.2rem; font-family: 'Comfortaa', sans-serif; transition: background 0.2s; }
         .mobile-menu-btn:hover { background: #ffb347; }
         @media (max-width: 768px) { .mobile-menu-btn { display: block; } }
@@ -232,8 +237,15 @@
                 <button id="exportarVectorJsonBtn"><i class="fas fa-download"></i> Exportar a JSON (vector)</button>
                 <input type="file" id="importarGruposJson" accept=".json" style="display:none">
                 <button id="limpiarHistorialBtn"><i class="fas fa-trash-alt"></i> Limpiar todo el historial</button>
+                <button id="vincularCarpetaBtn"><i class="fas fa-folder-open"></i> Vincular carpeta local</button>
             </div>
-            <div class="sidebar-footer"><i class="fas fa-database"></i> LocalStorage automático</div>
+            <div class="sidebar-footer">
+                <div><i class="fas fa-database"></i> LocalStorage automático</div>
+                <div class="fs-status" id="fsStatus">
+                    <span class="fs-dot inactive" id="fsDot"></span>
+                    <span id="fsStatusText">Sin carpeta vinculada</span>
+                </div>
+            </div>
         </div>
     </div>
     <div class="main-content">
@@ -501,7 +513,7 @@
         });
     }
 
-    // --------------------- REGISTROS GUARDADOS (con botones de reordenación) ---------------------
+    // --------------------- REGISTROS GUARDADOS ---------------------
     let currentSearchText = "";
     let currentClasificacionFilter = "todos";
     let registrosDynamicContainer = null;
@@ -730,7 +742,7 @@
         });
     }
 
-    // --------------------- GENERADOR (con auto-foco después de limpiar) ---------------------
+    // --------------------- GENERADOR ---------------------
     function renderizarGenerador() {
         const b = appData.borrador;
         const editando = appData.editandoIndex !== null;
@@ -873,7 +885,71 @@
         document.addEventListener('click', (e) => { if (window.innerWidth <= 768 && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !mobileBtn.contains(e.target)) sidebar.classList.remove('open'); });
         const themeToggle = document.getElementById('themeToggle');
         if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
+        document.getElementById('vincularCarpetaBtn').addEventListener('click', vincularCarpeta);
     }
+
+    // ========== FILE SYSTEM ACCESS API ==========
+    let fsDirectoryHandle = null;
+    let fsFileName = null;
+
+    function getFsFileName() {
+        if (fsFileName) return fsFileName;
+        const now = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        const ts = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+        fsFileName = `ChatBot_bd_${ts}.json`;
+        return fsFileName;
+    }
+
+    function actualizarFsStatusUI(estado) {
+        const dot = document.getElementById('fsDot');
+        const txt = document.getElementById('fsStatusText');
+        if (!dot || !txt) return;
+        dot.className = `fs-dot ${estado}`;
+        if (estado === 'active') txt.textContent = `\u2713 ${fsFileName}`;
+        else if (estado === 'error') txt.textContent = 'Error al escribir';
+        else txt.textContent = 'Sin carpeta vinculada';
+    }
+
+    async function vincularCarpeta() {
+        if (!('showDirectoryPicker' in window)) {
+            alert('Tu navegador no soporta File System Access API.\nUsa Chrome o Edge actualizados.');
+            return;
+        }
+        try {
+            fsDirectoryHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+            getFsFileName();
+            actualizarFsStatusUI('active');
+            await escribirArchivoLocal();
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                actualizarFsStatusUI('error');
+                console.error('Error al vincular carpeta:', err);
+            }
+        }
+    }
+
+    async function escribirArchivoLocal() {
+        if (!fsDirectoryHandle) return;
+        try {
+            const fileHandle = await fsDirectoryHandle.getFileHandle(getFsFileName(), { create: true });
+            const writable = await fileHandle.createWritable();
+            await writable.write(JSON.stringify(appData.grupos, null, 2));
+            await writable.close();
+            actualizarFsStatusUI('active');
+        } catch (err) {
+            actualizarFsStatusUI('error');
+            console.error('Error al escribir archivo local:', err);
+        }
+    }
+
+    // Wrapper: cada guardarLocalStorage también escribe a disco si hay carpeta vinculada
+    const _guardarLS = guardarLocalStorage;
+    guardarLocalStorage = function() {
+        _guardarLS();
+        escribirArchivoLocal();
+    };
+    // ========== FIN FILE SYSTEM ACCESS API ==========
 
     cargarLocalStorage();
     applyTheme(currentTheme);

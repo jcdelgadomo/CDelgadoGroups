@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
-        /* ===== ESTILOS BASE (sin cambios) ===== */
+        /* ===== ESTILOS BASE ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Comfortaa', sans-serif; transition: background 0.3s, color 0.3s; }
         body.dark { background: radial-gradient(circle at 20% 30%, #1a1a1c, #0b0b0e); color: #e0e0e0; }
@@ -56,7 +56,7 @@
         .checkbox-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.7rem; font-family: 'Comfortaa', sans-serif; }
         body.dark .checkbox-item { color: #ccc; }
         body.light .checkbox-item { color: #333; }
-        .checkbox-item input { width: auto; margin: 0; transform: scale(0.9); }
+        .checkbox-item input[type="checkbox"] { accent-color: #025927; width: 14px; height: 14px; margin: 0; transform: scale(0.95); }
         .sidebar-actions { margin-top: 1rem; border-top: 1px solid; padding-top: 1rem; }
         body.dark .sidebar-actions { border-color: #2e2e32; }
         body.light .sidebar-actions { border-color: #d0d7de; }
@@ -75,6 +75,37 @@
         .fs-dot.inactive { background: #555; }
         .fs-dot.active { background: #66bb6a; box-shadow: 0 0 4px #66bb6a; }
         .fs-dot.error { background: #ef5350; }
+        .reconnect-banner {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            background: #2c2c30;
+            border-left: 4px solid #ff8c42;
+            border-radius: 8px;
+            padding: 0.7rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            font-size: 0.8rem;
+        }
+        body.light .reconnect-banner {
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+        }
+        .reconnect-banner button {
+            background: #ff8c42;
+            border: none;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Comfortaa', sans-serif;
+            font-weight: 500;
+        }
+        .reconnect-banner button:hover {
+            background: #ffb347;
+        }
         .mobile-menu-btn { position: fixed; top: 1rem; left: 1rem; z-index: 101; background: #ff8c42; color: #0b0b0e; border: none; padding: 0.6rem; border-radius: 4px; cursor: pointer; display: none; font-size: 1.2rem; font-family: 'Comfortaa', sans-serif; transition: background 0.2s; }
         .mobile-menu-btn:hover { background: #ffb347; }
         @media (max-width: 768px) { .mobile-menu-btn { display: block; } }
@@ -232,10 +263,6 @@
         <div>
             <div class="sidebar-actions">
                 <button id="exportarExcelBtn"><i class="fas fa-file-excel"></i> Exportar a Excel</button>
-                <button id="guardarCopiaSeguridadBtn"><i class="fas fa-save"></i> Guardar copia de seguridad</button>
-                <label for="importarGruposJson" style="cursor:pointer;"><i class="fas fa-upload"></i> Cargar copia de seguridad</label>
-                <button id="exportarVectorJsonBtn"><i class="fas fa-download"></i> Exportar a JSON (vector)</button>
-                <input type="file" id="importarGruposJson" accept=".json" style="display:none">
                 <button id="limpiarHistorialBtn"><i class="fas fa-trash-alt"></i> Limpiar todo el historial</button>
                 <button id="vincularCarpetaBtn"><i class="fas fa-folder-open"></i> Vincular carpeta local</button>
             </div>
@@ -252,6 +279,7 @@
         <div id="contenidoDinamico"></div>
     </div>
 </div>
+<div id="reconnectBanner" class="reconnect-banner" style="display: none;"></div>
 
 <script>
     // ---------- DATOS ----------
@@ -315,7 +343,6 @@
         appData.borrador[nombreCampo] = "";
         guardarLocalStorage();
         renderizarSeccion(currentSection);
-        // Después de renderizar, enfocar el campo si se pasó el elemento original
         if (inputElement && document.getElementById(nombreCampo)) {
             document.getElementById(nombreCampo).focus();
         }
@@ -401,7 +428,6 @@
         }
     }
 
-    // Reordenar grupos (mover arriba/abajo)
     function moverGrupo(index, direccion) {
         const nuevosGrupos = [...appData.grupos];
         const nuevoIndex = direccion === 'up' ? index - 1 : index + 1;
@@ -414,49 +440,12 @@
         }
     }
 
-    // Persistencia en JSON
-    function exportarCopiaSeguridad() {
-        if (appData.grupos.length === 0) { alert("No hay grupos guardados."); return; }
-        let nombreBase = prompt("Ingresa un nombre para la copia de seguridad:", "backup");
-        if (!nombreBase) nombreBase = "backup";
-        nombreBase = nombreBase.replace(/[^a-z0-9áéíóúñü_-]/gi, '_');
-        const nombreArchivo = `ChatBot-backup-${nombreBase}.json`;
-        const dataStr = JSON.stringify(appData.grupos, null, 2);
-        const blob = new Blob([dataStr], {type: 'application/json'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = nombreArchivo;
-        a.click();
-        URL.revokeObjectURL(url);
-    }
-    function importarCopiaSeguridad(file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const imported = JSON.parse(e.target.result);
-                if (Array.isArray(imported) && imported.length && imported[0].direccion !== undefined && imported[0].preguntas) {
-                    appData.grupos = imported;
-                    appData.grupos.forEach(g => { if (g.validado === undefined) g.validado = false; });
-                    resetearModoEdicion();
-                    guardarLocalStorage();
-                    renderizarSeccion(currentSection);
-                    alert("Copia de seguridad cargada.");
-                } else alert("Formato inválido.");
-            } catch(err) { alert("Error al leer JSON: " + err.message); }
-        };
-        reader.readAsText(file);
-    }
-    function obtenerArrayParaVector() {
+    function exportarChatbotExcel() {
         const vector = [];
         for (const grupo of appData.grupos) {
             const base = { direccion: grupo.direccion, respuesta: grupo.respuesta, clasificacion: grupo.clasificacion, tema: grupo.tema, palabras_clave: grupo.palabras_clave, abreviaciones: grupo.abreviaciones };
             for (let i = 0; i < grupo.preguntas.length; i++) vector.push({ ...base, pregunta: grupo.preguntas[i] });
         }
-        return vector;
-    }
-    function exportarChatbotExcel() {
-        const vector = obtenerArrayParaVector();
         if (!vector.length) { alert("No hay grupos guardados."); return; }
         const headers = ["direccion", "pregunta", "respuesta", "clasificacion", "tema", "palabras_clave", "abreviaciones"];
         const wsData = [headers];
@@ -466,17 +455,7 @@
         XLSX.utils.book_append_sheet(wb, ws, "Preguntas");
         XLSX.writeFile(wb, `chatbot_preguntas.xlsx`);
     }
-    function exportarChatbotJSONVector() {
-        const vector = obtenerArrayParaVector();
-        if (!vector.length) { alert("No hay grupos guardados."); return; }
-        const blob = new Blob([JSON.stringify(vector, null, 2)], {type: 'application/json'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `chatbot_preguntas_vector.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-    }
+
     function limpiarTodoHistorial() {
         if (confirm("⚠️ Esto eliminará TODOS los grupos. ¿Continuar?")) {
             appData.grupos = [];
@@ -521,10 +500,7 @@
     function actualizarStatsBadges(total, filtrados) {
         const statsContainer = document.querySelector('.stats-badges');
         if (!statsContainer) return;
-        statsContainer.innerHTML = `
-            <div class="stat-badge">Total: ${total}</div>
-            <div class="stat-badge">Filtrados: ${filtrados}</div>
-        `;
+        statsContainer.innerHTML = `<div class="stat-badge">Total: ${total}</div><div class="stat-badge">Filtrados: ${filtrados}</div>`;
     }
 
     function aplicarFiltrosYRenderizar() {
@@ -607,21 +583,9 @@
                             <div class="preguntas-list">
                                 <strong><i class="fas fa-list"></i> Preguntas asociadas:</strong>
                                 <div style="margin-top: 0.5rem;">
-                                    <div class="pregunta-item-chat">
-                                        <span class="pregunta-tipo-badge">Crítica</span>
-                                        <span class="pregunta-texto">${escapeHtml(grupo.preguntas[0])}</span>
-                                        <button class="copy-pregunta-btn" data-pregunta="${escapeHtml(grupo.preguntas[0])}" title="Copiar pregunta"><i class="fas fa-copy"></i></button>
-                                    </div>
-                                    <div class="pregunta-item-chat">
-                                        <span class="pregunta-tipo-badge">Inferencial</span>
-                                        <span class="pregunta-texto">${escapeHtml(grupo.preguntas[1])}</span>
-                                        <button class="copy-pregunta-btn" data-pregunta="${escapeHtml(grupo.preguntas[1])}" title="Copiar pregunta"><i class="fas fa-copy"></i></button>
-                                    </div>
-                                    <div class="pregunta-item-chat">
-                                        <span class="pregunta-tipo-badge">Literal</span>
-                                        <span class="pregunta-texto">${escapeHtml(grupo.preguntas[2])}</span>
-                                        <button class="copy-pregunta-btn" data-pregunta="${escapeHtml(grupo.preguntas[2])}" title="Copiar pregunta"><i class="fas fa-copy"></i></button>
-                                    </div>
+                                    <div class="pregunta-item-chat"><span class="pregunta-tipo-badge">Crítica</span><span class="pregunta-texto">${escapeHtml(grupo.preguntas[0])}</span><button class="copy-pregunta-btn" data-pregunta="${escapeHtml(grupo.preguntas[0])}"><i class="fas fa-copy"></i></button></div>
+                                    <div class="pregunta-item-chat"><span class="pregunta-tipo-badge">Inferencial</span><span class="pregunta-texto">${escapeHtml(grupo.preguntas[1])}</span><button class="copy-pregunta-btn" data-pregunta="${escapeHtml(grupo.preguntas[1])}"><i class="fas fa-copy"></i></button></div>
+                                    <div class="pregunta-item-chat"><span class="pregunta-tipo-badge">Literal</span><span class="pregunta-texto">${escapeHtml(grupo.preguntas[2])}</span><button class="copy-pregunta-btn" data-pregunta="${escapeHtml(grupo.preguntas[2])}"><i class="fas fa-copy"></i></button></div>
                                 </div>
                             </div>
                         </div>
@@ -640,106 +604,14 @@
     }
 
     function attachGruposEvents() {
-        // Mover arriba/abajo
-        document.querySelectorAll('.mover-up').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const idx = parseInt(btn.getAttribute('data-index'));
-                moverGrupo(idx, 'up');
-            });
-        });
-        document.querySelectorAll('.mover-down').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const idx = parseInt(btn.getAttribute('data-index'));
-                moverGrupo(idx, 'down');
-            });
-        });
-        // Copiar respuesta
-        document.querySelectorAll('.copy-respuesta-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const texto = btn.getAttribute('data-respuesta');
-                if (texto) {
-                    navigator.clipboard.writeText(texto).then(() => {
-                        const originalIcon = btn.innerHTML;
-                        btn.innerHTML = '<i class="fas fa-check"></i>';
-                        setTimeout(() => { btn.innerHTML = originalIcon; }, 1000);
-                    }).catch(err => console.error('Error al copiar: ', err));
-                }
-            });
-        });
-        // Validación con ícono
-        document.querySelectorAll('.toggle-validado').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const idx = parseInt(btn.getAttribute('data-idx'));
-                if (!isNaN(idx) && appData.grupos[idx]) {
-                    const grupo = appData.grupos[idx];
-                    grupo.validado = !grupo.validado;
-                    guardarLocalStorage();
-                    const grupoDiv = btn.closest('.grupo-item');
-                    if (grupoDiv) {
-                        const badge = grupoDiv.querySelector('.clasificacion-badge');
-                        if (badge) {
-                            if (grupo.validado) badge.classList.add('validado');
-                            else badge.classList.remove('validado');
-                        }
-                        const icon = btn.querySelector('i');
-                        if (icon) {
-                            if (grupo.validado) {
-                                icon.classList.remove('fa-check-circle');
-                                icon.classList.add('fa-times-circle');
-                                btn.setAttribute('title', 'Desmarcar como confirmado');
-                            } else {
-                                icon.classList.remove('fa-times-circle');
-                                icon.classList.add('fa-check-circle');
-                                btn.setAttribute('title', 'Marcar como confirmado');
-                            }
-                        }
-                    }
-                }
-            });
-        });
-        // Copiar preguntas
-        document.querySelectorAll('.copy-pregunta-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const texto = btn.getAttribute('data-pregunta');
-                if (texto) {
-                    navigator.clipboard.writeText(texto).then(() => {
-                        const originalIcon = btn.innerHTML;
-                        btn.innerHTML = '<i class="fas fa-check"></i>';
-                        setTimeout(() => { btn.innerHTML = originalIcon; }, 1000);
-                    }).catch(err => console.error('Error al copiar: ', err));
-                }
-            });
-        });
-        // Expansión/contracción
-        document.querySelectorAll('.grupo-item').forEach(item => {
-            const toggleIcon = item.querySelector('.toggle-icon');
-            const detailsDiv = item.querySelector('.grupo-details');
-            if (toggleIcon && detailsDiv) {
-                const setState = (expanded) => {
-                    if (expanded) { detailsDiv.style.display = 'block'; toggleIcon.classList.remove('fa-chevron-right'); toggleIcon.classList.add('fa-chevron-down'); }
-                    else { detailsDiv.style.display = 'none'; toggleIcon.classList.remove('fa-chevron-down'); toggleIcon.classList.add('fa-chevron-right'); }
-                };
-                setState(false);
-                toggleIcon.addEventListener('click', (e) => { e.stopPropagation(); const isExpanded = detailsDiv.style.display === 'block'; setState(!isExpanded); });
-                item.addEventListener('click', (e) => {
-                    if (e.target.closest('.editar-grupo') || e.target.closest('.eliminar-grupo') || e.target.closest('.toggle-icon') || e.target.closest('.toggle-validado') || e.target.closest('.copy-pregunta-btn') || e.target.closest('.copy-respuesta-btn') || e.target.closest('.mover-up') || e.target.closest('.mover-down')) return;
-                    const isExpanded = detailsDiv.style.display === 'block';
-                    setState(!isExpanded);
-                });
-            }
-        });
-        // Editar y eliminar
-        document.querySelectorAll('.editar-grupo').forEach(btn => {
-            btn.addEventListener('click', (e) => { e.stopPropagation(); const idx = btn.getAttribute('data-index'); if (idx !== null) editarGrupo(parseInt(idx)); });
-        });
-        document.querySelectorAll('.eliminar-grupo').forEach(btn => {
-            btn.addEventListener('click', (e) => { e.stopPropagation(); const idx = btn.getAttribute('data-index'); if (idx !== null) eliminarGrupo(parseInt(idx)); });
-        });
+        document.querySelectorAll('.mover-up').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const idx = parseInt(btn.getAttribute('data-index')); moverGrupo(idx, 'up'); }));
+        document.querySelectorAll('.mover-down').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const idx = parseInt(btn.getAttribute('data-index')); moverGrupo(idx, 'down'); }));
+        document.querySelectorAll('.copy-respuesta-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const texto = btn.getAttribute('data-respuesta'); if (texto) navigator.clipboard.writeText(texto).then(() => { const originalIcon = btn.innerHTML; btn.innerHTML = '<i class="fas fa-check"></i>'; setTimeout(() => { btn.innerHTML = originalIcon; }, 1000); }).catch(err => console.error('Error al copiar: ', err)); }));
+        document.querySelectorAll('.toggle-validado').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const idx = parseInt(btn.getAttribute('data-idx')); if (!isNaN(idx) && appData.grupos[idx]) { const grupo = appData.grupos[idx]; grupo.validado = !grupo.validado; guardarLocalStorage(); const grupoDiv = btn.closest('.grupo-item'); if (grupoDiv) { const badge = grupoDiv.querySelector('.clasificacion-badge'); if (badge) { if (grupo.validado) badge.classList.add('validado'); else badge.classList.remove('validado'); } const icon = btn.querySelector('i'); if (icon) { if (grupo.validado) { icon.classList.remove('fa-check-circle'); icon.classList.add('fa-times-circle'); btn.setAttribute('title', 'Desmarcar como confirmado'); } else { icon.classList.remove('fa-times-circle'); icon.classList.add('fa-check-circle'); btn.setAttribute('title', 'Marcar como confirmado'); } } } } }));
+        document.querySelectorAll('.copy-pregunta-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const texto = btn.getAttribute('data-pregunta'); if (texto) navigator.clipboard.writeText(texto).then(() => { const originalIcon = btn.innerHTML; btn.innerHTML = '<i class="fas fa-check"></i>'; setTimeout(() => { btn.innerHTML = originalIcon; }, 1000); }).catch(err => console.error('Error al copiar: ', err)); }));
+        document.querySelectorAll('.grupo-item').forEach(item => { const toggleIcon = item.querySelector('.toggle-icon'); const detailsDiv = item.querySelector('.grupo-details'); if (toggleIcon && detailsDiv) { const setState = (expanded) => { if (expanded) { detailsDiv.style.display = 'block'; toggleIcon.classList.remove('fa-chevron-right'); toggleIcon.classList.add('fa-chevron-down'); } else { detailsDiv.style.display = 'none'; toggleIcon.classList.remove('fa-chevron-down'); toggleIcon.classList.add('fa-chevron-right'); } }; setState(false); toggleIcon.addEventListener('click', (e) => { e.stopPropagation(); const isExpanded = detailsDiv.style.display === 'block'; setState(!isExpanded); }); item.addEventListener('click', (e) => { if (e.target.closest('.editar-grupo') || e.target.closest('.eliminar-grupo') || e.target.closest('.toggle-icon') || e.target.closest('.toggle-validado') || e.target.closest('.copy-pregunta-btn') || e.target.closest('.copy-respuesta-btn') || e.target.closest('.mover-up') || e.target.closest('.mover-down')) return; const isExpanded = detailsDiv.style.display === 'block'; setState(!isExpanded); }); } });
+        document.querySelectorAll('.editar-grupo').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const idx = btn.getAttribute('data-index'); if (idx !== null) editarGrupo(parseInt(idx)); }));
+        document.querySelectorAll('.eliminar-grupo').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const idx = btn.getAttribute('data-index'); if (idx !== null) eliminarGrupo(parseInt(idx)); }));
     }
 
     // --------------------- GENERADOR ---------------------
@@ -747,7 +619,6 @@
         const b = appData.borrador;
         const editando = appData.editandoIndex !== null;
         const requiredFields = ['direccion', 'respuesta', 'pregunta1', 'pregunta2', 'pregunta3'];
-        
         function campoConTache(label, nombre, tipo='text', rows=null, placeholder='', showCopy = false) {
             const value = b[nombre] || '';
             const inputId = nombre;
@@ -755,13 +626,10 @@
             const isProtected = appData.protectedFields[nombre];
             const isRequired = requiredFields.includes(nombre);
             const labelHtml = `<label>${label}${isProtected ? ' <i class="fas fa-shield-alt" style="color: #ff8c42; font-size: 0.75rem;"></i>' : ''}</label>`;
-            const inputHtml = isTextarea 
-                ? `<textarea id="${inputId}" rows="${rows}" placeholder="${escapeHtml(placeholder)}" ${isRequired ? 'class="required-field"' : ''}>${escapeHtml(value)}</textarea>` 
-                : `<input type="text" id="${inputId}" value="${escapeHtml(value)}" placeholder="${escapeHtml(placeholder)}" ${isRequired ? 'class="required-field"' : ''}>`;
+            const inputHtml = isTextarea ? `<textarea id="${inputId}" rows="${rows}" placeholder="${escapeHtml(placeholder)}" ${isRequired ? 'class="required-field"' : ''}>${escapeHtml(value)}</textarea>` : `<input type="text" id="${inputId}" value="${escapeHtml(value)}" placeholder="${escapeHtml(placeholder)}" ${isRequired ? 'class="required-field"' : ''}>`;
             const copyButton = showCopy ? `<button type="button" class="copy-field-inside" data-field-copy="${nombre}" title="Copiar contenido"><i class="fas fa-copy"></i></button>` : '';
             return `<div class="input-group">${labelHtml}<div class="input-wrapper">${inputHtml}<button type="button" class="clear-field-inside" data-field="${nombre}" title="Limpiar campo"><i class="fas fa-times-circle"></i></button>${copyButton}</div></div>`;
         }
-        
         return `
             <div class="section-card">
                 <h2 class="section-title"><span><i class="fas fa-edit"></i> Nuevo registro de preguntas</span>${editando ? '<span class="edit-badge"><i class="fas fa-pen"></i> Editando registro</span>' : ''}</h2>
@@ -774,27 +642,9 @@
                     <div class="full-width">${campoConTache('Respuesta principal', 'respuesta', 'textarea', 3, 'Respuesta principal del chatbot', true)}</div>
                 </div>
                 <div class="preguntas-horizontal">
-                    <div class="pregunta-item-form">
-                        <label>Pregunta 1 ${appData.protectedFields.pregunta1 ? '<i class="fas fa-shield-alt" style="color: #ff8c42; font-size: 0.85rem;"></i>' : ''}</label>
-                        <div class="input-wrapper">
-                            <textarea id="pregunta1" rows="3" placeholder="Nivel Crítico" class="${requiredFields.includes('pregunta1') ? 'required-field' : ''}">${escapeHtml(b.pregunta1)}</textarea>
-                            <button type="button" class="clear-field-inside" data-field="pregunta1" title="Limpiar campo"><i class="fas fa-times-circle"></i></button>
-                        </div>
-                    </div>
-                    <div class="pregunta-item-form">
-                        <label>Pregunta 2 ${appData.protectedFields.pregunta2 ? '<i class="fas fa-shield-alt" style="color: #ff8c42; font-size: 0.85rem;"></i>' : ''}</label>
-                        <div class="input-wrapper">
-                            <textarea id="pregunta2" rows="3" placeholder="Nivel Inferencial" class="${requiredFields.includes('pregunta2') ? 'required-field' : ''}">${escapeHtml(b.pregunta2)}</textarea>
-                            <button type="button" class="clear-field-inside" data-field="pregunta2" title="Limpiar campo"><i class="fas fa-times-circle"></i></button>
-                        </div>
-                    </div>
-                    <div class="pregunta-item-form">
-                        <label>Pregunta 3 ${appData.protectedFields.pregunta3 ? '<i class="fas fa-shield-alt" style="color: #ff8c42; font-size: 0.85rem;"></i>' : ''}</label>
-                        <div class="input-wrapper">
-                            <textarea id="pregunta3" rows="3" placeholder="Nivel Literal" class="${requiredFields.includes('pregunta3') ? 'required-field' : ''}">${escapeHtml(b.pregunta3)}</textarea>
-                            <button type="button" class="clear-field-inside" data-field="pregunta3" title="Limpiar campo"><i class="fas fa-times-circle"></i></button>
-                        </div>
-                    </div>
+                    <div class="pregunta-item-form"><label>Pregunta 1 ${appData.protectedFields.pregunta1 ? '<i class="fas fa-shield-alt" style="color: #ff8c42; font-size: 0.85rem;"></i>' : ''}</label><div class="input-wrapper"><textarea id="pregunta1" rows="3" placeholder="Nivel Crítico" class="${requiredFields.includes('pregunta1') ? 'required-field' : ''}">${escapeHtml(b.pregunta1)}</textarea><button type="button" class="clear-field-inside" data-field="pregunta1"><i class="fas fa-times-circle"></i></button></div></div>
+                    <div class="pregunta-item-form"><label>Pregunta 2 ${appData.protectedFields.pregunta2 ? '<i class="fas fa-shield-alt" style="color: #ff8c42; font-size: 0.85rem;"></i>' : ''}</label><div class="input-wrapper"><textarea id="pregunta2" rows="3" placeholder="Nivel Inferencial" class="${requiredFields.includes('pregunta2') ? 'required-field' : ''}">${escapeHtml(b.pregunta2)}</textarea><button type="button" class="clear-field-inside" data-field="pregunta2"><i class="fas fa-times-circle"></i></button></div></div>
+                    <div class="pregunta-item-form"><label>Pregunta 3 ${appData.protectedFields.pregunta3 ? '<i class="fas fa-shield-alt" style="color: #ff8c42; font-size: 0.85rem;"></i>' : ''}</label><div class="input-wrapper"><textarea id="pregunta3" rows="3" placeholder="Nivel Literal" class="${requiredFields.includes('pregunta3') ? 'required-field' : ''}">${escapeHtml(b.pregunta3)}</textarea><button type="button" class="clear-field-inside" data-field="pregunta3"><i class="fas fa-times-circle"></i></button></div></div>
                 </div>
                 <div class="flex-buttons">
                     <button class="btn-sm" id="guardarGrupoBtn"><i class="fas fa-save"></i> ${editando ? 'Actualizar registro' : 'Guardar registro'}</button>
@@ -808,11 +658,7 @@
     function renderizarRegistros() {
         const grupos = appData.grupos;
         if (!grupos.length) return `<div class="section-card"><h2 class="section-title"><i class="fas fa-database"></i> Registros guardados</h2><div class="stats-badges"></div><div class="empty-state">No hay grupos. Crea uno en "Generador".</div></div>`;
-        return `<div class="section-card" id="registrosCard">
-                    <h2 class="section-title"><i class="fas fa-database"></i> Registros guardados</h2>
-                    <div class="stats-badges"></div>
-                    <div id="registrosDynamicContent"></div>
-                </div>`;
+        return `<div class="section-card" id="registrosCard"><h2 class="section-title"><i class="fas fa-database"></i> Registros guardados</h2><div class="stats-badges"></div><div id="registrosDynamicContent"></div></div>`;
     }
 
     function renderizarSeccion(seccion) {
@@ -820,33 +666,8 @@
             contenidoDinamico.innerHTML = renderizarGenerador();
             const campos = ['direccion','respuesta','clasificacion','tema','palabras_clave','abreviaciones','pregunta1','pregunta2','pregunta3'];
             campos.forEach(campo => { const el = document.getElementById(campo); if (el) el.addEventListener('input', (e) => { appData.borrador[campo] = e.target.value; guardarLocalStorage(); }); });
-            // Eventos para botones de limpiar (con auto-foco)
-            document.querySelectorAll('.clear-field-inside').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const field = btn.getAttribute('data-field');
-                    if (field) {
-                        // Capturamos el elemento actual antes de limpiar
-                        const inputElement = document.getElementById(field);
-                        limpiarCampo(field, true, inputElement);
-                    }
-                });
-            });
-            // Eventos para botón de copiar
-            document.querySelectorAll('.copy-field-inside').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const field = btn.getAttribute('data-field-copy');
-                    if (field) {
-                        const inputElement = document.getElementById(field);
-                        if (inputElement) {
-                            navigator.clipboard.writeText(inputElement.value).then(() => {
-                                const originalIcon = btn.innerHTML;
-                                btn.innerHTML = '<i class="fas fa-check"></i>';
-                                setTimeout(() => { btn.innerHTML = originalIcon; }, 1000);
-                            }).catch(err => console.error('Error al copiar: ', err));
-                        }
-                    }
-                });
-            });
+            document.querySelectorAll('.clear-field-inside').forEach(btn => { btn.addEventListener('click', (e) => { const field = btn.getAttribute('data-field'); if (field) { const inputElement = document.getElementById(field); limpiarCampo(field, true, inputElement); } }); });
+            document.querySelectorAll('.copy-field-inside').forEach(btn => { btn.addEventListener('click', (e) => { const field = btn.getAttribute('data-field-copy'); if (field) { const inputElement = document.getElementById(field); if (inputElement) { navigator.clipboard.writeText(inputElement.value).then(() => { const originalIcon = btn.innerHTML; btn.innerHTML = '<i class="fas fa-check"></i>'; setTimeout(() => { btn.innerHTML = originalIcon; }, 1000); }).catch(err => console.error('Error al copiar: ', err)); } } }); });
             document.getElementById('guardarGrupoBtn').addEventListener('click', guardarGrupo);
             document.getElementById('limpiarFormularioBtn').addEventListener('click', limpiarFormularioManual);
             const cancelBtn = document.getElementById('cancelarEdicionBtn');
@@ -856,59 +677,135 @@
             registrosDynamicContainer = document.getElementById('registrosDynamicContent');
             if (registrosDynamicContainer) aplicarFiltrosYRenderizar();
         }
-        document.querySelectorAll('.sidebar-nav a').forEach(link => {
-            link.classList.remove('active');
-            if (link.getAttribute('data-section') === seccion) link.classList.add('active');
-        });
+        document.querySelectorAll('.sidebar-nav a').forEach(link => { link.classList.remove('active'); if (link.getAttribute('data-section') === seccion) link.classList.add('active'); });
         renderCheckboxes();
     }
 
     function initNavigation() {
-        document.querySelectorAll('.sidebar-nav a').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const section = link.getAttribute('data-section');
-                if (section) { currentSection = section; renderizarSeccion(section); if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open'); }
-            });
-        });
-    }
-    function initGlobalEvents() {
-        document.getElementById('exportarExcelBtn').addEventListener('click', exportarChatbotExcel);
-        document.getElementById('exportarVectorJsonBtn').addEventListener('click', exportarChatbotJSONVector);
-        document.getElementById('guardarCopiaSeguridadBtn').addEventListener('click', exportarCopiaSeguridad);
-        document.getElementById('limpiarHistorialBtn').addEventListener('click', limpiarTodoHistorial);
-        const importFile = document.getElementById('importarGruposJson');
-        importFile.addEventListener('change', (e) => { if (e.target.files.length) importarCopiaSeguridad(e.target.files[0]); e.target.value = ''; });
-        const mobileBtn = document.getElementById('mobileMenuBtn');
-        const sidebar = document.getElementById('sidebar');
-        mobileBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
-        document.addEventListener('click', (e) => { if (window.innerWidth <= 768 && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !mobileBtn.contains(e.target)) sidebar.classList.remove('open'); });
-        const themeToggle = document.getElementById('themeToggle');
-        if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
-        document.getElementById('vincularCarpetaBtn').addEventListener('click', vincularCarpeta);
+        document.querySelectorAll('.sidebar-nav a').forEach(link => { link.addEventListener('click', (e) => { e.preventDefault(); const section = link.getAttribute('data-section'); if (section) { currentSection = section; renderizarSeccion(section); if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open'); } }); });
     }
 
-    // ========== FILE SYSTEM ACCESS API ==========
+    // ========== FILE SYSTEM ACCESS API CON INDEXEDDB ==========
     let fsDirectoryHandle = null;
     let fsFileName = null;
+    const FS_STORE_NAME = 'fileSystemHandles';
+    const FS_DB_NAME = 'ChatBotFS';
 
     function getFsFileName() {
         if (fsFileName) return fsFileName;
         const now = new Date();
         const pad = n => String(n).padStart(2, '0');
-        const ts = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-        fsFileName = `ChatBot_bd_${ts}.json`;
+        const fecha = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+        fsFileName = `ChatBot_bd_${fecha}.json`;
         return fsFileName;
     }
 
-    function actualizarFsStatusUI(estado) {
+    function actualizarFsStatusUI(estado, fileName = null) {
         const dot = document.getElementById('fsDot');
         const txt = document.getElementById('fsStatusText');
         if (!dot || !txt) return;
         dot.className = `fs-dot ${estado}`;
-        if (estado === 'active') txt.textContent = `\u2713 ${fsFileName}`;
+        if (estado === 'active') txt.textContent = `\u2713 ${fileName || fsFileName || 'Archivo'}`;
         else if (estado === 'error') txt.textContent = 'Error al escribir';
         else txt.textContent = 'Sin carpeta vinculada';
+    }
+
+    async function guardarHandleIndexedDB(handle) {
+        if (!handle) return;
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(FS_DB_NAME, 1);
+            request.onupgradeneeded = () => { request.result.createObjectStore(FS_STORE_NAME); };
+            request.onsuccess = () => {
+                const tx = request.result.transaction(FS_STORE_NAME, 'readwrite');
+                const store = tx.objectStore(FS_STORE_NAME);
+                store.put(handle, 'directoryHandle');
+                tx.oncomplete = () => resolve();
+                tx.onerror = (err) => reject(err);
+            };
+            request.onerror = (err) => reject(err);
+        });
+    }
+
+    async function cargarHandleIndexedDB() {
+        return new Promise((resolve) => {
+            const request = indexedDB.open(FS_DB_NAME, 1);
+            request.onupgradeneeded = () => { request.result.createObjectStore(FS_STORE_NAME); };
+            request.onsuccess = () => {
+                const tx = request.result.transaction(FS_STORE_NAME, 'readonly');
+                const store = tx.objectStore(FS_STORE_NAME);
+                const getReq = store.get('directoryHandle');
+                getReq.onsuccess = () => resolve(getReq.result || null);
+                getReq.onerror = () => resolve(null);
+            };
+            request.onerror = () => resolve(null);
+        });
+    }
+
+    async function verificarPermisosHandle(handle) {
+        if (!handle) return false;
+        const opts = { mode: 'readwrite' };
+        if ((await handle.queryPermission(opts)) === 'granted') return true;
+        if ((await handle.requestPermission(opts)) === 'granted') return true;
+        return false;
+    }
+
+    async function escribirArchivoLocal() {
+        if (!fsDirectoryHandle) return;
+        try {
+            if (!(await verificarPermisosHandle(fsDirectoryHandle))) {
+                actualizarFsStatusUI('error');
+                return;
+            }
+            const fileHandle = await fsDirectoryHandle.getFileHandle(getFsFileName(), { create: true });
+            const writable = await fileHandle.createWritable();
+            await writable.write(JSON.stringify(appData.grupos, null, 2));
+            await writable.close();
+            actualizarFsStatusUI('active', getFsFileName());
+        } catch (err) {
+            actualizarFsStatusUI('error');
+            console.error('Error al escribir archivo local:', err);
+        }
+    }
+
+    async function restaurarCarpetaDesdeIndexedDB() {
+        const handle = await cargarHandleIndexedDB();
+        if (!handle) return false;
+        if (!(await verificarPermisosHandle(handle))) {
+            // Mostrar banner para reconectar
+            const banner = document.getElementById('reconnectBanner');
+            if (banner) {
+                banner.style.display = 'flex';
+                banner.innerHTML = `
+                    <span><i class="fas fa-folder-open"></i> Carpeta vinculada anteriormente: ${handle.name || 'carpeta'}</span>
+                    <button id="btnReconectar">Reconectar</button>
+                    <button id="btnDesvincular" style="background: #555;">✖</button>
+                `;
+                const btnReconectar = document.getElementById('btnReconectar');
+                const btnDesvincular = document.getElementById('btnDesvincular');
+                if (btnReconectar) btnReconectar.onclick = async () => {
+                    if (await verificarPermisosHandle(handle)) {
+                        fsDirectoryHandle = handle;
+                        await guardarHandleIndexedDB(handle);
+                        actualizarFsStatusUI('active', getFsFileName());
+                        await escribirArchivoLocal();
+                        banner.style.display = 'none';
+                    } else {
+                        alert('No se pudo reconectar. Vuelve a vincular la carpeta manualmente.');
+                    }
+                };
+                if (btnDesvincular) btnDesvincular.onclick = () => {
+                    fsDirectoryHandle = null;
+                    guardarHandleIndexedDB(null);
+                    actualizarFsStatusUI('inactive');
+                    banner.style.display = 'none';
+                };
+            }
+            return false;
+        }
+        fsDirectoryHandle = handle;
+        actualizarFsStatusUI('active', getFsFileName());
+        await escribirArchivoLocal();
+        return true;
     }
 
     async function vincularCarpeta() {
@@ -917,10 +814,14 @@
             return;
         }
         try {
-            fsDirectoryHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+            const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+            fsDirectoryHandle = handle;
+            await guardarHandleIndexedDB(handle);
             getFsFileName();
-            actualizarFsStatusUI('active');
+            actualizarFsStatusUI('active', fsFileName);
             await escribirArchivoLocal();
+            const banner = document.getElementById('reconnectBanner');
+            if (banner) banner.style.display = 'none';
         } catch (err) {
             if (err.name !== 'AbortError') {
                 actualizarFsStatusUI('error');
@@ -929,21 +830,6 @@
         }
     }
 
-    async function escribirArchivoLocal() {
-        if (!fsDirectoryHandle) return;
-        try {
-            const fileHandle = await fsDirectoryHandle.getFileHandle(getFsFileName(), { create: true });
-            const writable = await fileHandle.createWritable();
-            await writable.write(JSON.stringify(appData.grupos, null, 2));
-            await writable.close();
-            actualizarFsStatusUI('active');
-        } catch (err) {
-            actualizarFsStatusUI('error');
-            console.error('Error al escribir archivo local:', err);
-        }
-    }
-
-    // Wrapper: cada guardarLocalStorage también escribe a disco si hay carpeta vinculada
     const _guardarLS = guardarLocalStorage;
     guardarLocalStorage = function() {
         _guardarLS();
@@ -951,12 +837,29 @@
     };
     // ========== FIN FILE SYSTEM ACCESS API ==========
 
-    cargarLocalStorage();
-    applyTheme(currentTheme);
-    initNavigation();
-    initGlobalEvents();
-    renderizarSeccion('generador');
-    currentSection = 'generador';
+    function initGlobalEvents() {
+        document.getElementById('exportarExcelBtn').addEventListener('click', exportarChatbotExcel);
+        document.getElementById('limpiarHistorialBtn').addEventListener('click', limpiarTodoHistorial);
+        document.getElementById('vincularCarpetaBtn').addEventListener('click', vincularCarpeta);
+        const mobileBtn = document.getElementById('mobileMenuBtn');
+        const sidebar = document.getElementById('sidebar');
+        mobileBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
+        document.addEventListener('click', (e) => { if (window.innerWidth <= 768 && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !mobileBtn.contains(e.target)) sidebar.classList.remove('open'); });
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
+    }
+
+    async function iniciar() {
+        cargarLocalStorage();
+        applyTheme(currentTheme);
+        initNavigation();
+        initGlobalEvents();
+        renderizarSeccion('generador');
+        currentSection = 'generador';
+        await restaurarCarpetaDesdeIndexedDB();
+    }
+
+    iniciar();
 </script>
 </body>
 </html>

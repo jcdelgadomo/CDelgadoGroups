@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>ChatBot | Generador de Preguntas</title>
+    <title>ChatBot-Tracker</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
-        /* ===== ESTILOS BASE ===== */
+        
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Comfortaa', sans-serif; transition: background 0.3s, color 0.3s; }
         body.dark { background: radial-gradient(circle at 20% 30%, #1a1a1c, #0b0b0e); color: #e0e0e0; }
@@ -295,7 +295,7 @@
 <div id="reconnectBanner" class="reconnect-banner" style="display: none;"></div>
 
 <script>
-    // ---------- DATOS ----------
+    
     let appData = {
         grupos: [],
         borrador: {
@@ -311,7 +311,7 @@
     let currentSection = "generador";
     const contenidoDinamico = document.getElementById('contenidoDinamico');
 
-    // Tema
+   
     let currentTheme = localStorage.getItem('chatbotTheme') || 'dark';
     function applyTheme(theme) {
         document.body.classList.remove('dark', 'light');
@@ -505,7 +505,6 @@
         });
     }
 
-    // --------------------- REGISTROS GUARDADOS ---------------------
     let currentSearchText = "";
     let currentClasificacionFilter = "todos";
     let registrosDynamicContainer = null;
@@ -627,7 +626,6 @@
         document.querySelectorAll('.eliminar-grupo').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const idx = btn.getAttribute('data-index'); if (idx !== null) eliminarGrupo(parseInt(idx)); }));
     }
 
-    // --------------------- GENERADOR ---------------------
     function renderizarGenerador() {
         const b = appData.borrador;
         const editando = appData.editandoIndex !== null;
@@ -698,7 +696,7 @@
         document.querySelectorAll('.sidebar-nav a').forEach(link => { link.addEventListener('click', (e) => { e.preventDefault(); const section = link.getAttribute('data-section'); if (section) { currentSection = section; renderizarSeccion(section); if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open'); } }); });
     }
 
-    // ========== FILE SYSTEM ACCESS API CON INDEXEDDB ==========
+    
     let fsDirectoryHandle = null;
     let fsFileName = null;
     const FS_STORE_NAME = 'fileSystemHandles';
@@ -855,7 +853,7 @@
         }
     }
 
-    // ========== FUNCIÓN CARGAR RESPALDO ==========
+    
     function cargarRespaldo() {
         const input = document.createElement('input');
         input.type = 'file';
@@ -893,7 +891,6 @@
         input.click();
     }
 
-    // Sobrescribir guardarLocalStorage para que también guarde en archivo si hay carpeta
     const _guardarLS = guardarLocalStorage;
     guardarLocalStorage = function() {
         _guardarLS();
